@@ -5,6 +5,7 @@ import itertools
 import random
 import string
 import os.path
+import hashlib
 
 class DynamicLine(): # TODO better name?
     def __init__(self):
@@ -49,7 +50,8 @@ def main():
     print (all_dynamic_lines)
 
 def write_ini(folderPath, file):
-
+    hash = hashlib.sha1()
+    
     filePath = id_generator() + '.ini'
    # while not os.path.isfile(folderPath + filePath):
    #     filePath = id_generator() + '.ini'

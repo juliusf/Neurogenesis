@@ -1,28 +1,20 @@
 #include <mpi.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 #define WORKTAG     1
 #define DIETAG     2
-main(argc, argv)
-int argc;
-char *argv[];
-{
-    int         myrank;
-    MPI_Init(&argc, &argv);   /* initialize MPI */
-    MPI_Comm_rank(
-    MPI_COMM_WORLD,   /* always use this */
-    &myrank);      /* process rank, 0 thru N-1 */
-    if (myrank == 0) {
-        master(&argc, &argv);
-    } else {
-        slave();
-    }
-    MPI_Finalize();       /* cleanup MPI */
-}
 
-master(const int *argc, const char *argv[])
+
+void master(int argc, char *argv[])
 {
-    int workPool[10] = {0,1,2,3,4,5,6,7,8,9};
-    int next_work_element = 0;
-    int workPoolSize = 10;
+    unsigned long long  workPool[argc - 1],
+    next_work_element = 0,
+    workPoolSize = argc -1;
+
+    for (unsigned long long int i = 0; i < workPoolSize; ++i){
+        sscanf(argv[i+1], "%llx", & workPool[i]);
+    }
 
     int ntasks, rank, work;
     ntasks = workPoolSize;
@@ -79,7 +71,7 @@ master(const int *argc, const char *argv[])
     }
 }
 
-slave()
+void slave()
 {
     double              result;
     int                 work;
@@ -87,16 +79,36 @@ slave()
     for (;;) {
         MPI_Recv(&work, 1, MPI_INT, 0, MPI_ANY_TAG,
         MPI_COMM_WORLD, &status);
-/*
-* Check the tag of the received message.
-*/
+        /*
+        * Check the tag of the received message.
+        */
         if (status.MPI_TAG == DIETAG) {
             return;
         }
         result = 0;
         int world_rank;
         MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-        printf("workID: %i, rank: %i \n", work, world_rank);
+        int i=system ("cd /tmp/");
+        system ("ls");
+        printf ("The value returned was: %d.\n",i);
+
+
+        printf("workID: %x, rank: %i \n", work, world_rank);
         MPI_Send(&result, 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
     }
+}
+
+int main(int argc, char *argv[])
+{
+    int         myrank;
+    MPI_Init(&argc, &argv);   /* initialize MPI */
+    MPI_Comm_rank(
+    MPI_COMM_WORLD,   /* always use this */
+    &myrank);      /* process rank, 0 thru N-1 */
+    if (myrank == 0) {
+        master(argc, argv);
+    } else {
+        slave();
+    }
+    MPI_Finalize();       /* cleanup MPI */
 }
