@@ -6,7 +6,8 @@
 #define WORKTAG     1
 #define DIETAG     2
 #define DIGEST_SIZE 32
-#define BASE_PATH "/tmp/"
+#define BASE_PATH "/tmp/distSim/simulations/"
+#define EXECUTE_COMMAND "/./run.sh"
 
 
 
@@ -36,7 +37,6 @@ void master(int argc, char *argv[])
         rank,           /* destination process rank */
         WORKTAG,        /* user chosen message tag */
         MPI_COMM_WORLD);/* always use this */
-        printf("seeding: %i\n", next_work_element-1);
     }
 
 /*
@@ -56,7 +56,6 @@ void master(int argc, char *argv[])
         if(next_work_element != workPoolSize)
             strcpy(work, argv[next_work_element + 1]);
         next_work_element++;
-        printf("reseeding: %i\n", next_work_element-1);
     }
 /*
 * Receive results for outstanding work requests.
@@ -91,23 +90,22 @@ void slave()
             return;
         }
         
-        result = 0;
-        //int world_rank;
-        //MPI_Comm_rank(MPI_COMM_WORLD, &world_rank)
-        printf("work: %s \n", work);
-        /*
-        int i=system ("cd /tmp/");
-        system ("ls");
-        printf ("The value returned was: %d.\n",i);
-        */
+        int base_length = strlen(BASE_PATH);
+        int command_length = strlen(EXECUTE_COMMAND);
 
+        char* execute_command = (char*) malloc(base_length + DIGEST_SIZE + command_length + 1);
+        strcat(execute_command, BASE_PATH);
+        strcat(execute_command, work);
+        strcat(execute_command, EXECUTE_COMMAND);
         
+        result = system (execute_command); 
         MPI_Send(&result, 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
     }
 }
 
 int main(int argc, char *argv[])
 {
+    //static const char SIM_BASE_PATH[] = BASE_PATH;
     int         myrank;
     MPI_Init(&argc, &argv);   /* initialize MPI */
     MPI_Comm_rank(
