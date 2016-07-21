@@ -6,6 +6,9 @@ import random
 import string
 import os.path
 import hashlib
+import os
+import stat
+
 
 class DynamicLine(): # TODO better name?
     def __init__(self):
@@ -23,12 +26,18 @@ def main():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("file", help=".ini file to be demuxed")
     arg_parser.add_argument("--outdir", help="specifies the location where files should be written to.")
-
+    arg_parser.add_argument("--inetdir", help='location of the inet executable on NFS share'
+                            )
     args = arg_parser.parse_args()
     if args.outdir is None:
-        folder_path = "/tmp/"
+        folder_path = "/tmp/distSim/simulations/"
     else:
         folder_path = args.outdir
+
+    if args.inetdir is None:
+        inet_dir = "/tmp/distSim/inet/src/"
+    else:
+        inet_dir = args.inetdir
 
     lines = []
     dynamic_lines = []
@@ -45,20 +54,48 @@ def main():
     for perm in itertools.product(*all_dynamic_lines):
         for idx, val in enumerate(perm):
             dynamic_lines[idx].current_print_representation = val
-        write_ini(folder_path, lines)
+        write_sim_data(inet_dir, folder_path, lines)
 
     print (all_dynamic_lines)
 
-def write_ini(folderPath, file):
-    hash = hashlib.sha1()
-    
-    filePath = id_generator() + '.ini'
-   # while not os.path.isfile(folderPath + filePath):
-   #     filePath = id_generator() + '.ini'
-    f = open (folderPath + filePath, "a")
+def write_sim_data(inet_dir, folder_path, lines):
+    hash = hashlib.md5()
+    [hash.update(str(line).encode('utf-8')) for line in lines]
+    full_folder_path = check_and_create_folder(folder_path, hash.hexdigest())
+    write_ini(full_folder_path, lines)
+    create_bash_script(full_folder_path, inet_dir)
+
+def write_ini(folder_path, file):
+    full_path = folder_path + "/omnetpp.ini"
+    if os.path.exists(full_path):
+        os.remove(full_path)
+    f = open (full_path, "a")
     for line in file:
         f.write(str(line))
     f.close()
+
+def check_and_create_folder(base_path, folder_name):
+    full_path = base_path + folder_name
+    if not os.path.exists(full_path):
+        os.makedirs(full_path)
+    return full_path
+
+
+def create_bash_script(target_folder, inet_dir):
+    script = """
+    #!/bin/bash
+    cd %s
+    .%srun_inet
+
+    """ % (target_folder, inet_dir)
+    full_path = target_folder + "/run.sh"
+    if os.path.exists(full_path):
+        os.remove(full_path)
+    f = open (full_path, "a")
+    f.write(script)
+    f.close()
+    file_handle = os.stat(full_path)
+    os.chmod(full_path, file_handle.st_mode | stat.S_IEXEC)
 
 def create_dynamic_line(line):
     dline = DynamicLine()

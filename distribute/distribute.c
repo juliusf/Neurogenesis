@@ -1,22 +1,23 @@
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define WORKTAG     1
 #define DIETAG     2
+#define DIGEST_SIZE 32
+#define BASE_PATH "/tmp/"
+
 
 
 void master(int argc, char *argv[])
 {
-    unsigned long long  workPool[argc - 1],
-    next_work_element = 0,
-    workPoolSize = argc -1;
-
-    for (unsigned long long int i = 0; i < workPoolSize; ++i){
-        sscanf(argv[i+1], "%llx", & workPool[i]);
-    }
-
-    int ntasks, rank, work;
+    int next_work_element = 0;
+    int workPoolSize = argc -1;
+    next_work_element = 0;
+    
+    int ntasks, rank;
+    char* work = (char *) malloc(DIGEST_SIZE+1);
     ntasks = workPoolSize;
     double       result;
     MPI_Status     status;
@@ -27,22 +28,21 @@ void master(int argc, char *argv[])
     * Seed the slaves.
     */
     for (rank = 1; rank < ntasks; ++rank) {
-        work = workPool[next_work_element]; /* get_next_work_request */
+        strncpy(work, argv[next_work_element + 1], DIGEST_SIZE+1);        
         next_work_element++;
-        MPI_Send(&work,         /* message buffer */
-        1,              /* one data item */
-        MPI_INT,        /* data item is an integer */
+        MPI_Send(work,         /* message buffer */
+        DIGEST_SIZE+1,              /* one data item */
+        MPI_CHAR,        /* data item is an integer */
         rank,           /* destination process rank */
         WORKTAG,        /* user chosen message tag */
         MPI_COMM_WORLD);/* always use this */
+        printf("seeding: %i\n", next_work_element-1);
     }
 
 /*
 * Receive a result from any slave and dispatch a new work
 * request work requests have been exhausted.
 */
-    work = workPool[next_work_element];/* get_next_work_request */
-    next_work_element++;
     while (next_work_element <= workPoolSize) {
         MPI_Recv(&result,       /* message buffer */
         1,              /* one data item */
@@ -51,10 +51,12 @@ void master(int argc, char *argv[])
         MPI_ANY_TAG,    /* any type of message */
         MPI_COMM_WORLD, /* always use this */
         &status);       /* received message info */
-        MPI_Send(&work, 1, MPI_INT, status.MPI_SOURCE,
+        MPI_Send(work, DIGEST_SIZE+1, MPI_BYTE, status.MPI_SOURCE,
         WORKTAG, MPI_COMM_WORLD);
-        work = workPool[next_work_element];
+        if(next_work_element != workPoolSize)
+            strcpy(work, argv[next_work_element + 1]);
         next_work_element++;
+        printf("reseeding: %i\n", next_work_element-1);
     }
 /*
 * Receive results for outstanding work requests.
@@ -73,27 +75,33 @@ void master(int argc, char *argv[])
 
 void slave()
 {
-    double              result;
-    int                 work;
-    MPI_Status          status;
+
+    double result = 0;
+    char*  work = (char *) malloc(DIGEST_SIZE+1);
+    MPI_Status status;
+    
     for (;;) {
-        MPI_Recv(&work, 1, MPI_INT, 0, MPI_ANY_TAG,
+        MPI_Recv(work, DIGEST_SIZE+1, MPI_BYTE, 0, MPI_ANY_TAG,
         MPI_COMM_WORLD, &status);
         /*
         * Check the tag of the received message.
         */
+    
         if (status.MPI_TAG == DIETAG) {
             return;
         }
+        
         result = 0;
-        int world_rank;
-        MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+        //int world_rank;
+        //MPI_Comm_rank(MPI_COMM_WORLD, &world_rank)
+        printf("work: %s \n", work);
+        /*
         int i=system ("cd /tmp/");
         system ("ls");
         printf ("The value returned was: %d.\n",i);
+        */
 
-
-        printf("workID: %x, rank: %i \n", work, world_rank);
+        
         MPI_Send(&result, 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
     }
 }
