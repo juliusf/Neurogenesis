@@ -15,8 +15,7 @@ void master(int argc, char *argv[])
 {
     int next_work_element = 0;
     int workPoolSize = argc -1;
-    next_work_element = 0;
-    
+
     int ntasks, rank;
     char* work = (char *) malloc(DIGEST_SIZE+1);
     ntasks = workPoolSize;
@@ -29,7 +28,7 @@ void master(int argc, char *argv[])
     * Seed the slaves.
     */
     for (rank = 1; rank < ntasks; ++rank) {
-        strncpy(work, argv[next_work_element + 1], DIGEST_SIZE+1);        
+        strncpy(work, argv[next_work_element + 1], DIGEST_SIZE+1);
         next_work_element++;
         MPI_Send(work,         /* message buffer */
         DIGEST_SIZE+1,              /* one data item */
@@ -78,35 +77,34 @@ void slave()
     double result = 0;
     char*  work = (char *) malloc(DIGEST_SIZE+1);
     MPI_Status status;
-    
+
     for (;;) {
         MPI_Recv(work, DIGEST_SIZE+1, MPI_BYTE, 0, MPI_ANY_TAG,
         MPI_COMM_WORLD, &status);
         /*
         * Check the tag of the received message.
         */
-    
+
         if (status.MPI_TAG == DIETAG) {
             return;
         }
-        
+
         int base_length = strlen(BASE_PATH);
         int command_length = strlen(EXECUTE_COMMAND);
 
         char* execute_command = (char*) malloc(base_length + DIGEST_SIZE + command_length + 1);
         execute_command[0] = '\0';
-	strcat(execute_command, BASE_PATH);
+        strcat(execute_command, BASE_PATH);
         strcat(execute_command, work);
         strcat(execute_command, EXECUTE_COMMAND);
-        result = system (execute_command); 
-	
+        result = system (execute_command);
+        free(execute_command);
         MPI_Send(&result, 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
     }
 }
 
 int main(int argc, char *argv[])
 {
-    //static const char SIM_BASE_PATH[] = BASE_PATH;
     int         myrank;
     MPI_Init(&argc, &argv);   /* initialize MPI */
     MPI_Comm_rank(
