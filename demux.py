@@ -110,11 +110,10 @@ def check_and_create_file(full_path):
 def create_bash_script(target_folder, inet_dir):
     script = """
     #!/bin/bash
-
-    cd %s
-    #.%srun_inet
-
-    """ % (target_folder, inet_dir)
+    DIR=%s
+    TARGET=%s
+    /home/jules/dev/omnetpp-5.0/bin/opp_run -u Cmdenv -l $DIR/INET -n  $DIR/../tutorials:$DIR/../examples:$DIR/:$DIR/../examples/ $TARGET/omnetpp.ini
+    """ % (inet_dir[:-1], target_folder)
     full_path = target_folder + "/run.sh"
     if os.path.exists(full_path):
         os.remove(full_path)
