@@ -94,11 +94,12 @@ void slave()
         int command_length = strlen(EXECUTE_COMMAND);
 
         char* execute_command = (char*) malloc(base_length + DIGEST_SIZE + command_length + 1);
-        strcat(execute_command, BASE_PATH);
+        execute_command[0] = '\0';
+	strcat(execute_command, BASE_PATH);
         strcat(execute_command, work);
         strcat(execute_command, EXECUTE_COMMAND);
-        
         result = system (execute_command); 
+	
         MPI_Send(&result, 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
     }
 }
