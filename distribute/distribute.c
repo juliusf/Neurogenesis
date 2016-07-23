@@ -30,6 +30,7 @@ void master(int argc, char *argv[])
     for (rank = 1; rank < ntasks; ++rank) {
         strncpy(work, argv[next_work_element + 1], DIGEST_SIZE+1);
         next_work_element++;
+	printf("starting job: %s on rank: %i\n", work, rank);
         MPI_Send(work,         /* message buffer */
         DIGEST_SIZE+1,              /* one data item */
         MPI_CHAR,        /* data item is an integer */
@@ -50,6 +51,7 @@ void master(int argc, char *argv[])
         MPI_ANY_TAG,    /* any type of message */
         MPI_COMM_WORLD, /* always use this */
         &status);       /* received message info */
+	printf("starting job: %s on rank: %i\n", work, rank);
         MPI_Send(work, DIGEST_SIZE+1, MPI_BYTE, status.MPI_SOURCE,
         WORKTAG, MPI_COMM_WORLD);
         if(next_work_element != workPoolSize)

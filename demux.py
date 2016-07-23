@@ -50,7 +50,7 @@ def main():
     if args.omnetdir is not None:
         omnet_exec = args.omnetdir
     else:
-        omnet_exec = "/Users/jules/dev/omnetpp-5.0/"
+        omnet_exec = "/home/jules/dev/omnetpp-5.0/"
     omnet_exec += "bin/opp_run"
 
     lines = []
@@ -120,11 +120,9 @@ def create_bash_script(target_folder, omnet_exec, inet_dir):
     DIR=%s
     TARGET=%s
     cd $DIR
-    %s -G -u Cmdenv -l $DIR/INET -n  $DIR/inet:$DIR/../tutorials:$DIR/../examples:$DIR/../examples $TARGET/omnetpp.ini
+    %s -G -u Cmdenv -l $DIR/INET -n  $DIR/inet:$DIR/../tutorials:$DIR/../examples:$DIR/../examples:$TARGET/ $TARGET/omnetpp.ini > /dev/null
 
     """ % (inet_dir[:-1], target_folder, omnet_exec)
-    #%s -G -u Cmdenv -l $DIR/INET -n  $DIR/../tutorials:$DIR/../examples:$DIR/:/tmp/distSim/inet/examples/webrtc/rtp_v_datachannel/ $TARGET/omnetpp.ini
-
     full_path = target_folder + "/run.sh"
     if os.path.exists(full_path):
         os.remove(full_path)
