@@ -27,6 +27,7 @@ def main():
     arg_parser.add_argument("file", help=".ini file to be demuxed")
     arg_parser.add_argument("--outdir", help="specifies the location where files should be written to.")
     arg_parser.add_argument("--inetdir", help='location of the inet executable on NFS share')
+    arg_parser.add_argument("--omnetdir", help="location of the omnet executable on NFS share")
     arg_parser.add_argument("--additionalFiles", nargs="+", help="additional Files which should be copied to the output dirs")
     args = arg_parser.parse_args()
 
@@ -46,6 +47,12 @@ def main():
         for file in args.additionalFiles:
             additional_files.append(file)
 
+    if args.omnetdir is not None:
+        omnet_exec = args.omnetdir
+    else:
+        omnet_exec = "/Users/jules/dev/omnetpp-5.0/"
+    omnet_exec += "bin/opp_run"
+
     lines = []
     dynamic_lines = []
     with open(args.file) as input_file:
@@ -61,16 +68,16 @@ def main():
     for perm in itertools.product(*all_dynamic_lines):
         for idx, val in enumerate(perm):
             dynamic_lines[idx].current_print_representation = val
-        write_sim_data(inet_dir, folder_path, lines, additional_files)
+        write_sim_data(omnet_exec, inet_dir, folder_path, lines, additional_files)
 
     print ("file creation successfull")
 
-def write_sim_data(inet_dir, folder_path, lines, additional_files):
+def write_sim_data(omnet_exec, inet_dir, folder_path, lines, additional_files):
     hash = hashlib.md5()
     [hash.update(str(line).encode('utf-8')) for line in lines]
     full_folder_path = check_and_create_folder(folder_path, hash.hexdigest())
     write_ini(full_folder_path, lines)
-    create_bash_script(full_folder_path, inet_dir)
+    create_bash_script(full_folder_path, omnet_exec, inet_dir)
     write_additional_files(full_folder_path, additional_files)
 
 def write_additional_files(folder_path, files):
@@ -107,13 +114,17 @@ def check_and_create_file(full_path):
     f = open (full_path, "a")
     return f
 
-def create_bash_script(target_folder, inet_dir):
+def create_bash_script(target_folder, omnet_exec, inet_dir):
     script = """
     #!/bin/bash
     DIR=%s
     TARGET=%s
-    /home/jules/dev/omnetpp-5.0/bin/opp_run -u Cmdenv -l $DIR/INET -n  $DIR/../tutorials:$DIR/../examples:$DIR/:$DIR/../examples/ $TARGET/omnetpp.ini
-    """ % (inet_dir[:-1], target_folder)
+    cd $DIR
+    %s -G -u Cmdenv -l $DIR/INET -n  $DIR/inet:$DIR/../tutorials:$DIR/../examples:$DIR/../examples $TARGET/omnetpp.ini
+
+    """ % (inet_dir[:-1], target_folder, omnet_exec)
+    #%s -G -u Cmdenv -l $DIR/INET -n  $DIR/../tutorials:$DIR/../examples:$DIR/:/tmp/distSim/inet/examples/webrtc/rtp_v_datachannel/ $TARGET/omnetpp.ini
+
     full_path = target_folder + "/run.sh"
     if os.path.exists(full_path):
         os.remove(full_path)
