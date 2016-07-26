@@ -19,7 +19,7 @@ void master(int argc, char *argv[])
     int ntasks, rank;
     char* work = (char *) malloc(DIGEST_SIZE+1);
     ntasks = workPoolSize;
-    double       result;
+    int       result = 0;
     MPI_Status     status;
     MPI_Comm_size(
     MPI_COMM_WORLD,    /* always use this */
@@ -46,11 +46,12 @@ void master(int argc, char *argv[])
     while (next_work_element <= workPoolSize) {
         MPI_Recv(&result,       /* message buffer */
         1,              /* one data item */
-        MPI_DOUBLE,     /* of type double real */
+        MPI_INT,     /* of type int*/
         MPI_ANY_SOURCE, /* receive from any sender */
         MPI_ANY_TAG,    /* any type of message */
         MPI_COMM_WORLD, /* always use this */
         &status);       /* received message info */
+	printf("received exit code: %i from rank %i\n", result, rank);
 	printf("starting job: %s on rank: %i\n", work, rank);
         MPI_Send(work, DIGEST_SIZE+1, MPI_BYTE, status.MPI_SOURCE,
         WORKTAG, MPI_COMM_WORLD);
@@ -62,8 +63,9 @@ void master(int argc, char *argv[])
 * Receive results for outstanding work requests.
 */
     for (rank = 1; rank < ntasks; ++rank) {
-        MPI_Recv(&result, 1, MPI_DOUBLE, MPI_ANY_SOURCE,
+        MPI_Recv(&result, 1, MPI_INT, MPI_ANY_SOURCE,
         MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+	printf("received exit code: %i from rank %i\n", result, rank);
     }
 /*
 * Tell all the slaves to exit.
@@ -76,7 +78,7 @@ void master(int argc, char *argv[])
 void slave()
 {
 
-    double result = 0;
+    int result = 0;
     char*  work = (char *) malloc(DIGEST_SIZE+1);
     MPI_Status status;
 
@@ -101,7 +103,7 @@ void slave()
         strcat(execute_command, EXECUTE_COMMAND);
         result = system (execute_command);
         free(execute_command);
-        MPI_Send(&result, 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
+        MPI_Send(&result, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
     }
 }
 
