@@ -8,6 +8,7 @@ import os.path
 import hashlib
 import os
 import stat
+import sys
 
 
 class DynamicLine(): # TODO better name?
@@ -55,6 +56,7 @@ def main():
 
     lines = []
     dynamic_lines = []
+    sim_handles = []
     with open(args.file) as input_file:
         for row in input_file:
             if '{' in row:
@@ -68,17 +70,19 @@ def main():
     for perm in itertools.product(*all_dynamic_lines):
         for idx, val in enumerate(perm):
             dynamic_lines[idx].current_print_representation = val
-        write_sim_data(omnet_exec, inet_dir, folder_path, lines, additional_files)
+        write_sim_data(omnet_exec, inet_dir, folder_path, lines, additional_files, sim_handles)
 
-    print ("file creation successfull")
+    [sys.stdout.write( str(hash) + " ") for hash in sim_handles]
+    sys.stdout.flush()
 
-def write_sim_data(omnet_exec, inet_dir, folder_path, lines, additional_files):
+def write_sim_data(omnet_exec, inet_dir, folder_path, lines, additional_files, sim_handles):
     hash = hashlib.md5()
     [hash.update(str(line).encode('utf-8')) for line in lines]
     full_folder_path = check_and_create_folder(folder_path, hash.hexdigest())
     write_ini(full_folder_path, lines)
     create_bash_script(full_folder_path, omnet_exec, inet_dir)
     write_additional_files(full_folder_path, additional_files)
+    sim_handles.append(hash.hexdigest())
 
 def write_additional_files(folder_path, files):
     for file in files:
