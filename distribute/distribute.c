@@ -2,11 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #define WORKTAG     1
 #define DIETAG     2
 #define DIGEST_SIZE 32
-#define BASE_PATH "/tmp/distSim/simulations/"
+#define BASE_PATH "/mnt/distsim/simulations/"
 #define EXECUTE_COMMAND "/./run.sh"
 
 
@@ -15,11 +16,12 @@ void master(int argc, char *argv[])
 {
     int next_work_element = 0;
     int workPoolSize = argc -1;
-
+    
     int ntasks, rank;
     char* work = (char *) malloc(DIGEST_SIZE+1);
     ntasks = workPoolSize;
-    int       result = 0;
+    int       result = 0; 
+    printf("got %i simulation runs\n", workPoolSize);
     MPI_Status     status;
     MPI_Comm_size(
     MPI_COMM_WORLD,    /* always use this */
@@ -30,7 +32,7 @@ void master(int argc, char *argv[])
     for (rank = 1; rank < ntasks; ++rank) {
         strncpy(work, argv[next_work_element + 1], DIGEST_SIZE+1);
         next_work_element++;
-	printf("starting job: %s on rank: %i\n", work, rank);
+	printf("%i/%i:starting job: %s on rank: %i\n", next_work_element -1, workPoolSize, work, rank);
         MPI_Send(work,         /* message buffer */
         DIGEST_SIZE+1,              /* one data item */
         MPI_CHAR,        /* data item is an integer */
@@ -51,8 +53,8 @@ void master(int argc, char *argv[])
         MPI_ANY_TAG,    /* any type of message */
         MPI_COMM_WORLD, /* always use this */
         &status);       /* received message info */
-	printf("received exit code: %i from rank %i\n", result, rank);
-	printf("starting job: %s on rank: %i\n", work, rank);
+	printf("received exit code: %i from rank %i\n", result, status.MPI_SOURCE);
+	printf("%i/%i: starting job: %s on rank: %i\n", next_work_element, workPoolSize, work, status.MPI_SOURCE);
         MPI_Send(work, DIGEST_SIZE+1, MPI_BYTE, status.MPI_SOURCE,
         WORKTAG, MPI_COMM_WORLD);
         if(next_work_element != workPoolSize)
@@ -95,6 +97,11 @@ void slave()
 
         int base_length = strlen(BASE_PATH);
         int command_length = strlen(EXECUTE_COMMAND);
+	int work_length = strlen(work);
+	
+	if (isspace( (unsigned char) work[work_length -1 ])){
+		work[work_length -1] = '\0';
+	}
 
         char* execute_command = (char*) malloc(base_length + DIGEST_SIZE + command_length + 1);
         execute_command[0] = '\0';

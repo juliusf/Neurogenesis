@@ -33,12 +33,12 @@ def main():
     args = arg_parser.parse_args()
 
     if args.outdir is None:
-        folder_path = "/tmp/distSim/simulations/"
+        folder_path = "/mnt/distsim/simulations/"
     else:
         folder_path = args.outdir
 
     if args.inetdir is None:
-        inet_dir = "/tmp/distSim/inet/src/"
+        inet_dir = "/mnt/distsim/inet/src/"
     else:
         inet_dir = args.inetdir
 
@@ -51,7 +51,7 @@ def main():
     if args.omnetdir is not None:
         omnet_exec = args.omnetdir
     else:
-        omnet_exec = "/home/jules/dev/omnetpp-5.0/"
+        omnet_exec = "/mnt/distsim/omnetpp-5.0/"
     omnet_exec += "bin/opp_run"
 
     lines = []
