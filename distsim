@@ -35,6 +35,7 @@ def main():
     elif args.command == "extract":
         Logger.info("Extracting Scalars")
         updated_simulations = extract_scalars(args)
+	Logger.info("done. Writing results back to metafile")
         serialize_sim_data(args.metaFile, updated_simulations)
     else:
         Logger.error("Invlaid command: %s" % str(args.command))

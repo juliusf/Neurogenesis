@@ -3,17 +3,15 @@
 def extract(scalars_file, simulations):
     scalars = []
     scalars_file = open(scalars_file, "rb")
-    [scalars.append(scalar) for scalar in scalars_file]
+    [scalars.append(scalar.rstrip()) for scalar in scalars_file]
     scalars_file.close()
-
-    for simulation in simulations:
+    for simulation in simulations.values():
         result_file = open(simulation.path + "results/General-0.sca")
         for line in result_file:
             if line.startswith("scalar"):
                 for scalar in scalars:
                     if scalar in line:
                         simulation.results[scalar] = extract_scalar_value(line)
-                        break
         result_file.close()
     return simulations
 
