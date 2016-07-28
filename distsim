@@ -19,7 +19,7 @@ def main():
     arg_parser.add_argument("--additionalFiles", nargs="+", help="additional Files which should be copied to the output dirs")
     arg_parser.add_argument("--nrRanks", help="Nr of ranks the simulation should be distributed to")
     arg_parser.add_argument("--distributionBinary", help="location of the MPI distribution binary")
-    arg_parser.add_argument("--hostsfile", help = "location of the hosts file")
+    arg_parser.add_argument("--hostfile", help = "location of the host file")
 
     args = arg_parser.parse_args()
 
@@ -45,12 +45,12 @@ def simulate(args, simulations):
         else:
             distribution_binary = "/mnt/distsim/simtools/distribute/distribute"
 
-        if args.hostsfile  is not None:
-            hostsfile = args.hostsfile
+        if args.hostfile  is not None:
+            hostfile = args.hostfile
         else:
-            hostsfile = "/mnt/distsim/simtools/hostsfile"
+            hostfile = "/mnt/distsim/simtools/hostfile"
         Logger.info("Starting distributed Simulation with %i ranks" % nr_ranks)
-        runner.run_simulation(distribution_binary, hostsfile, nr_ranks, simulations)
+        runner.run_simulation(distribution_binary, hostfile, nr_ranks, simulations)
 
 
 def write_sim_config(args):
