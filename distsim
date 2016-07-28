@@ -4,14 +4,14 @@ import argparse
 import sys
 from neurogenesis import demux
 from neurogenesis import runner
+from neurogenesis import extractor
 from  neurogenesis.util import Logger
-from neurogenesis.base import serialize_sim_data
+from neurogenesis.base import serialize_sim_data, deserialize_sim_data
 
 
 def main():
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument("command", help="command to be executed. Possible values are: simulate")
-    arg_parser.add_argument("name", help="Name of the Simulation run.")
+    arg_parser.add_argument("command", help="command to be executed. Possible values are: simulate, extract")
     arg_parser.add_argument("--inifile", help="specifies the location of the ini file to be executed.")
     arg_parser.add_argument("--outdir", help="specifies the location where files should be written to.")
     arg_parser.add_argument("--inetdir", help='location of the inet executable on NFS share')
@@ -20,66 +20,80 @@ def main():
     arg_parser.add_argument("--nrRanks", help="Nr of ranks the simulation should be distributed to")
     arg_parser.add_argument("--distributionBinary", help="location of the MPI distribution binary")
     arg_parser.add_argument("--hostfile", help = "location of the host file")
-
+    arg_parser.add_argument("--extractScalarsFile", help= "List of scalars to be extracted")
+    arg_parser.add_argument("--metaFile", help="Meta file where simulation metadata is stored")
     args = arg_parser.parse_args()
+    args = write_default_parameters(args)
 
     if args.command == "simulate":
-        Logger.info("Distsim: Running Simulation %s " % str(args.name))
         Logger.info("Creating simulation configs...")
         simulations = write_sim_config(args)
-        simulate(args, simulations)
+        run_simulation(args, simulations)
 
         Logger.info("Saving simulation Metadata")
-        serialize_sim_data(args.name, simulations)
+        serialize_sim_data(args.metaFile, simulations)
+    elif args.command == "extract":
+        Logger.info("Extracting Scalars")
+        updated_simulations = extract_scalars(args)
+        serialize_sim_data(args.metaFile, updated_simulations)
     else:
         Logger.error("Invlaid command: %s" % str(args.command))
 
-def simulate(args, simulations):
-        if args.nrRanks is not None:
-            nr_ranks = args.nrRanks
-        else:
-            nr_ranks = 19
+def run_simulation(args, simulations):
 
-        if args.distributionBinary is not None:
-            distribution_binary = args.distributionBinary
-        else:
-            distribution_binary = "/mnt/distsim/simtools/distribute/distribute"
+        Logger.info("Starting distributed Simulation with %i ranks" % args.nrRanks)
+        runner.run_simulation(args.distributionBinary, args.hostfile, args.nrRanks, simulations)
 
-        if args.hostfile  is not None:
-            hostfile = args.hostfile
-        else:
-            hostfile = "/mnt/distsim/simtools/hostfile"
-        Logger.info("Starting distributed Simulation with %i ranks" % nr_ranks)
-        runner.run_simulation(distribution_binary, hostfile, nr_ranks, simulations)
+def extract_scalars(args):
+    simulations = deserialize_sim_data(args.metaFile)
+    return extractor.extract(args.extractScalarsFile, simulations)
+
+
+
+
+
 
 
 def write_sim_config(args):
     if args.inifile is None:
         Logger.error("No ini File specified!")
         sys.exit(-127)
+    return demux.demux_and_write_simulation(args.inifile, args.outdir, args.inetdir, args.additionalFiles, args.omnetdir)
+
+def write_default_parameters(args):
+    if args.nrRanks is None:
+        args.nrRanks = 19
+
+    if args.distributionBinary is None:
+        args.distributionBinary = "/mnt/distsim/simtools/distribute/distribute"
+
+    if args.hostfile  is None:
+        args.hostfile = "/mnt/distsim/simtools/hostfile"
+
     if args.outdir is None:
-        folder_path = "/mnt/distsim/simulations/"
-    else:
-        folder_path = args.outdir
+        args.outdir = "/mnt/distsim/simulations/"
 
     if args.inetdir is None:
-        inet_dir = "/mnt/distsim/inet/src/"
-    else:
-        inet_dir = args.inetdir
+        args.inetdir = "/mnt/distsim/inet/src/"
 
     additional_files = []
 
     if args.additionalFiles is not None:
         for file in args.additionalFiles:
             additional_files.append(file)
+    args.additionalFiles = additional_files
 
-    if args.omnetdir is not None:
-        omnet_exec = args.omnetdir
-    else:
-        omnet_exec = "/mnt/distsim/omnetpp-5.0/"
-    omnet_exec += "bin/opp_run"
+    if args.omnetdir is None:
+        args.omnetdir = "/mnt/distsim/omnetpp-5.0/"
+    args.omnetdir += "bin/opp_run"
 
-    return demux.demux_and_write_simulation(args.inifile, folder_path, inet_dir, additional_files, omnet_exec)
+    if args.extractScalarsFile is None:
+        args.extractScalarsFile = "scalars.txt"
+
+    if args.metaFile is None:
+        args.metaFile = "meta.pickle"
+
+    return args
 
 if __name__ == '__main__':
     main()
