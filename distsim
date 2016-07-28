@@ -1,0 +1,80 @@
+#! /usr/bin/python
+
+import argparse
+from neurogenesis import demux
+from neurogenesis import runner
+from  neurogenesis.util import Logger
+from neurogenesis.base import serialize_sim_data
+
+
+def main():
+    arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument("command", help="command to be executed. Possible values are: simulate")
+    arg_parser.add_argument("name", help="Name of the Simulation run.")
+    arg_parser.add_argument("--inifile", help="specifies the location of the ini file to be executed.")
+    arg_parser.add_argument("--outdir", help="specifies the location where files should be written to.")
+    arg_parser.add_argument("--inetdir", help='location of the inet executable on NFS share')
+    arg_parser.add_argument("--omnetdir", help="location of the omnet executable on NFS share")
+    arg_parser.add_argument("--additionalFiles", nargs="+", help="additional Files which should be copied to the output dirs")
+    arg_parser.add_argument("--nrRanks", help="Nr of ranks the simulation should be distributed to")
+    arg_parser.add_argument("--distributionBinary", help="location of the MPI distribution binary")
+    arg_parser.add_argument("--hostsfile", help = "location of the hosts file")
+
+    args = arg_parser.parse_args()
+
+    if args.command == "simulate":
+        Logger.info("Distsim: Running Simulation" % args.name)
+        Logger.info("Creating simulation configs...")
+        simulations = write_sim_config(args)
+        simulate(args, simulations)
+
+        Logger.info("Saving simulation Metadata")
+        serialize_sim_data(args.name, simulations)
+
+
+def simulate(args, simulations):
+        if args.nrRanks is not None:
+            nr_ranks = args.nrRanks
+        else:
+            nr_ranks = 19
+
+        if args.distributionBinary is not None:
+            distribution_binary = args.distributionBinary
+        else:
+            distribution_binary = "/mnt/distsim/simtools/distribute/distribute"
+
+        if args.hostsfile  is not None:
+            hostsfile = args.hostsfile
+        else:
+            hostsfile = "/mnt/distsim/simtools/hostsfile"
+        Logger.info("Starting distributed Simulation with %i ranks" % nr_ranks)
+        runner.run_simulation(distribution_binary, hostsfile, nr_ranks, simulations)
+
+
+def write_sim_config(args):
+    if args.outdir is None:
+        folder_path = "/mnt/distsim/simulations/"
+    else:
+        folder_path = args.outdir
+
+    if args.inetdir is None:
+        inet_dir = "/mnt/distsim/inet/src/"
+    else:
+        inet_dir = args.inetdir
+
+    additional_files = []
+
+    if args.additionalFiles is not None:
+        for file in args.additionalFiles:
+            additional_files.append(file)
+
+    if args.omnetdir is not None:
+        omnet_exec = args.omnetdir
+    else:
+        omnet_exec = "/mnt/distsim/omnetpp-5.0/"
+    omnet_exec += "bin/opp_run"
+
+    return demux.demux_and_write_simulation(args.file, folder_path, inet_dir, additional_files, omnet_exec)
+
+if __name__ == 'main':
+    main()

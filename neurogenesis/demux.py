@@ -40,6 +40,7 @@ def demux_and_write_simulation(ini_file, out_dir, inet_dir, additional_files, om
         run = SimulationRun()
         run.hash = hash
         run.config = all_dynamic_lines
+        run.path = out_dir + hash + "/"
         simulation_runs[hash] = run
 
     return simulation_runs
