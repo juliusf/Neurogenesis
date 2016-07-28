@@ -1,6 +1,7 @@
 #! /usr/bin/python
 
 import argparse
+import sys
 from neurogenesis import demux
 from neurogenesis import runner
 from  neurogenesis.util import Logger
@@ -23,7 +24,7 @@ def main():
     args = arg_parser.parse_args()
 
     if args.command == "simulate":
-        Logger.info("Distsim: Running Simulation" % args.name)
+        Logger.info("Distsim: Running Simulation %s " % str(args.name))
         Logger.info("Creating simulation configs...")
         simulations = write_sim_config(args)
         simulate(args, simulations)
@@ -31,7 +32,7 @@ def main():
         Logger.info("Saving simulation Metadata")
         serialize_sim_data(args.name, simulations)
     else:
-        Logger.error("Invlaid command: %s" % args.command)
+        Logger.error("Invlaid command: %s" % str(args.command))
 
 def simulate(args, simulations):
         if args.nrRanks is not None:
@@ -53,6 +54,9 @@ def simulate(args, simulations):
 
 
 def write_sim_config(args):
+    if args.inifile is None:
+        Logger.error("No ini File specified!")
+        sys.exit(-127)
     if args.outdir is None:
         folder_path = "/mnt/distsim/simulations/"
     else:
@@ -75,7 +79,7 @@ def write_sim_config(args):
         omnet_exec = "/mnt/distsim/omnetpp-5.0/"
     omnet_exec += "bin/opp_run"
 
-    return demux.demux_and_write_simulation(args.file, folder_path, inet_dir, additional_files, omnet_exec)
+    return demux.demux_and_write_simulation(args.inifile, folder_path, inet_dir, additional_files, omnet_exec)
 
 if __name__ == '__main__':
     main()
