@@ -30,7 +30,8 @@ def main():
 
         Logger.info("Saving simulation Metadata")
         serialize_sim_data(args.name, simulations)
-
+    else:
+        Logger.error("Invlaid command: %s" % args.command)
 
 def simulate(args, simulations):
         if args.nrRanks is not None:
@@ -76,5 +77,5 @@ def write_sim_config(args):
 
     return demux.demux_and_write_simulation(args.file, folder_path, inet_dir, additional_files, omnet_exec)
 
-if __name__ == 'main':
+if __name__ == '__main__':
     main()
