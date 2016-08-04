@@ -7,11 +7,11 @@ from neurogenesis import runner
 from neurogenesis import extractor
 from  neurogenesis.util import Logger
 from neurogenesis.base import serialize_sim_data, deserialize_sim_data
-
+from neurogenesis.plotter import plot_simulations
 
 def main():
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument("command", help="command to be executed. Possible values are: simulate, extract")
+    arg_parser.add_argument("command", help="command to be executed. Possible values are: simulate, extract, plot")
     arg_parser.add_argument("--inifile", help="specifies the location of the ini file to be executed.")
     arg_parser.add_argument("--outdir", help="specifies the location where files should be written to.")
     arg_parser.add_argument("--inetdir", help='location of the inet executable on NFS share')
@@ -22,6 +22,7 @@ def main():
     arg_parser.add_argument("--hostfile", help = "location of the host file")
     arg_parser.add_argument("--extractScalarsFile", help= "List of scalars to be extracted")
     arg_parser.add_argument("--metaFile", help="Meta file where simulation metadata is stored")
+    arg_parser.add_argument("--plotScript", help="location of the plot script")
     args = arg_parser.parse_args()
     args = write_default_parameters(args)
 
@@ -29,7 +30,6 @@ def main():
         Logger.info("Creating simulation configs...")
         simulations = write_sim_config(args)
         run_simulation(args, simulations)
-
         Logger.info("Saving simulation Metadata")
         serialize_sim_data(args.metaFile, simulations)
     elif args.command == "extract":
@@ -37,6 +37,8 @@ def main():
         updated_simulations = extract_scalars(args)
         Logger.info("done. Writing results back to metafile")
         serialize_sim_data(args.metaFile, updated_simulations)
+    elif args.command == "plot":
+        plot_simfile()
     else:
         Logger.error("Invlaid command: %s" % str(args.command))
 
@@ -50,10 +52,9 @@ def extract_scalars(args):
     return extractor.extract(args.extractScalarsFile, simulations)
 
 
-
-
-
-
+def plot_simfile(args):
+    simulations = deserialize_sim_data(args.metaFile)
+    plot_simulations(simulations,args.plotScript)
 
 def write_sim_config(args):
     if args.inifile is None:
@@ -93,6 +94,9 @@ def write_default_parameters(args):
 
     if args.metaFile is None:
         args.metaFile = "meta.pickle"
+
+    if args.plotScript is None:
+        args.plotScript = "plot.py"
 
     return args
 
