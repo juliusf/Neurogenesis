@@ -1,4 +1,5 @@
 
+import re
 
 def extract(scalars_file, simulations):
     scalars = []
@@ -26,6 +27,10 @@ def extract_scalar_value(line):
 
 def extract_parameter_value(line):
     if line.endswith('"'):
-	segments = line.split('"')
+        segments = line.split('"')
+        value = segments[-2]
+        value = re.sub("[^0-9]", "", value) #replaces all non numeric values
+        return float(value)
+
 
         

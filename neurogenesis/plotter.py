@@ -23,5 +23,5 @@ def plot_simulations(simulations, plot_script_path):
     file = open(plot_script_path, "rb")
     plot_script = file.read()
     file.close()
-    exec plot_script
+    exec(plot_script)
 

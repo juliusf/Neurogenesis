@@ -1,2 +1,5 @@
 Mean Delay (ms)
 Total Receive Rate (bps)
+
+**.coreChannel.delay
+**.coreChannel.datarate
