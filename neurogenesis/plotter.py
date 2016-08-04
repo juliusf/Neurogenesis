@@ -21,7 +21,7 @@ def load_plot_config(path):
 
 def plot_simulations(simulations, plot_script_path):
     file = open(plot_script_path, "rb")
-    plot_script = pickle.load(file)
+    plot_script = file.read()
     file.close()
     exec plot_script
 

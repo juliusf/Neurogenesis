@@ -38,7 +38,7 @@ def main():
         Logger.info("done. Writing results back to metafile")
         serialize_sim_data(args.metaFile, updated_simulations)
     elif args.command == "plot":
-        plot_simfile()
+        plot_simfile(args)
     else:
         Logger.error("Invlaid command: %s" % str(args.command))
 

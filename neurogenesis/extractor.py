@@ -12,6 +12,10 @@ def extract(scalars_file, simulations):
                 for scalar in scalars:
                     if scalar in line:
                         simulation.results[scalar] = extract_scalar_value(line)
+            elif line.startswith("param"):
+                for scalar in scalars:
+                    if scalar in line:
+                        simulation.results[scalar] = extract_parameter_value(line)
         result_file.close()
     return simulations
 
@@ -19,3 +23,9 @@ def extract_scalar_value(line):
     end_of_scalar_name = line.rfind("\"")
     nr = line[end_of_scalar_name +1:].strip()
     return float(nr)
+
+def extract_parameter_value(line):
+    if line.endswith('"'):
+	segments = line.split('"')
+
+        
