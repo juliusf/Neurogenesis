@@ -67,7 +67,7 @@ void master(int argc, char *argv[])
     for (rank = 1; rank < ntasks; ++rank) {
         MPI_Recv(&result, 1, MPI_INT, MPI_ANY_SOURCE,
         MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-	printf("received exit code: %i from rank %i\n", result, rank);
+    	printf("received exit code: %i from rank %i\n", result, status.MPI_SOURCE);
     }
 /*
 * Tell all the slaves to exit.
@@ -92,6 +92,7 @@ void slave()
         */
 
         if (status.MPI_TAG == DIETAG) {
+            free(work);
             return;
         }
 
