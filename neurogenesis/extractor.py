@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+
+>>>>>>> cf7e4d0c7b761c9d32b793a3871132464f6bee12
 import re
 
 def extract(scalars_file, simulations):
@@ -25,10 +29,18 @@ def extract_scalar_value(line):
     return float(nr)
 
 def extract_parameter_value(line):
+<<<<<<< HEAD
     if line.strip().endswith('"'):
+=======
+    if line.endswith('"'):
+>>>>>>> cf7e4d0c7b761c9d32b793a3871132464f6bee12
         segments = line.split('"')
         value = segments[-2]
         value = re.sub("[^0-9]", "", value) #replaces all non numeric values
         return float(value)
+<<<<<<< HEAD
+=======
+
+>>>>>>> cf7e4d0c7b761c9d32b793a3871132464f6bee12
 
         
