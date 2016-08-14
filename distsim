@@ -2,6 +2,7 @@
 
 import argparse
 import sys
+import httplib, urllib
 from neurogenesis import demux
 from neurogenesis import runner
 from neurogenesis import extractor
@@ -23,6 +24,7 @@ def main():
     arg_parser.add_argument("--extractScalarsFile", help= "List of scalars to be extracted")
     arg_parser.add_argument("--metaFile", help="Meta file where simulation metadata is stored")
     arg_parser.add_argument("--plotScript", help="location of the plot script")
+    arg_parser.add_argument("--notificationKeyFile", help="location of the pushover keyfile")
     args = arg_parser.parse_args()
     args = write_default_parameters(args)
 
@@ -32,6 +34,7 @@ def main():
         run_simulation(args, simulations)
         Logger.info("Saving simulation Metadata")
         serialize_sim_data(args.metaFile, simulations)
+        send_notification(args)
     elif args.command == "extract":
         Logger.info("Extracting Scalars")
         updated_simulations = extract_scalars(args)
@@ -61,6 +64,20 @@ def write_sim_config(args):
         Logger.error("No ini File specified!")
         sys.exit(-127)
     return demux.demux_and_write_simulation(args.inifile, args.outdir, args.inetdir, args.additionalFiles, args.omnetdir)
+
+def send_notification(args):
+    pushover_secret_file = open(args.pushover_secret, "r")
+    secret = pushover_secret_file.read().strip()
+    conn = httplib.HTTPSConnection("api.pushover.net:443")
+    conn.request("POST", "/1/messages.json",
+    urllib.urlencode({
+    "token": "ae1u9qxnk2obfgiodr19rrbo2bsazs",
+    "user": secret,
+    "message": "simulation of file %s with % ranks finished!" % (args.inifile, args.nrRanks),
+  }), { "Content-type": "application/x-www-form-urlencoded" })
+    conn.getresponse()
+
+    pushover_secret_file.close()
 
 def write_default_parameters(args):
     if args.nrRanks is None:
@@ -97,6 +114,9 @@ def write_default_parameters(args):
 
     if args.plotScript is None:
         args.plotScript = "plot.py"
+
+    if args.notificationKeyFile is None:
+        args.notificationKeyFile = "pushover_secret"
 
     return args
 
