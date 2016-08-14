@@ -1,7 +1,8 @@
 
 import pickle
 import matplotlib.pyplot as plt
-
+import numpy as np 
+from scipy import stats
 class SimulationConfig():
     def __init__(self):
         self.x_limits = (0,100,10)
