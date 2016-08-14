@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-
->>>>>>> cf7e4d0c7b761c9d32b793a3871132464f6bee12
 import re
 
 def extract(scalars_file, simulations):
