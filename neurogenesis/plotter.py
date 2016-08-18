@@ -1,7 +1,8 @@
 
 import pickle
 import matplotlib.pyplot as plt
-import numpy as np 
+import seaborn as sns
+import numpy as np
 from scipy import stats
 class SimulationConfig():
     def __init__(self):
@@ -19,6 +20,23 @@ def load_plot_config(path):
             continue
 
         tokens = line.strip().split(" ")
+
+def get_datapoints_in_buckets(simulations, x_axis_attr, y_axis_attr, filter=None):
+    datapoints = []
+    data_buckets = {}
+    for sim in simulations.values():
+        if not filter or sim.results[filter[0]] == filter[1]:
+            datapoints.append((sim.results[x_axis_attr], sim.results[y_axis_attr]))
+    for point in datapoints:
+        if point[0] not in data_buckets:
+            data_buckets[point[0]] = []
+        data_buckets[point[0]].append(point[1])
+    tuples = []
+    for (key, l) in data_buckets.items():
+        tpl = (key, l)
+        tuples.append(tpl)
+
+    return sorted(tuples, key=lambda x: x[0])
 
 def plot_simulations(simulations, plot_script_path):
     file = open(plot_script_path, "rb")
