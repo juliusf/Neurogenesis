@@ -128,3 +128,5 @@ ENV/
 .ropeproject
 
 distribute/distribute
+
+hostfile
