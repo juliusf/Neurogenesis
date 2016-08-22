@@ -32,6 +32,8 @@ def main():
         Logger.info("Creating simulation configs...")
         simulations = write_sim_config(args)
         run_simulation(args, simulations)
+        Logger.info("extracting scalars...")
+        extract_scalars(args)
         Logger.info("Saving simulation Metadata")
         serialize_sim_data(args.metaFile, simulations)
         send_notification(args)
@@ -81,7 +83,7 @@ def send_notification(args):
 
 def write_default_parameters(args):
     if args.nrRanks is None:
-        args.nrRanks = 19
+        args.nrRanks = 31
 
     if args.distributionBinary is None:
         args.distributionBinary = "/mnt/distsim/simtools/distribute/distribute"

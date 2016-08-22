@@ -1,0 +1,9 @@
+localhost slots=7 max-slots=7
+#HA_SIM_VM1b_1
+132.252.156.165 slots=8 max-slots=8
+#HA_SIM_VM1b_2
+132.252.156.204 slots=8 max-slots=8
+#HA_SIM_VM2_1
+132.252.156.207 slots=4 max-slots=4
+#HA_SIM_VM2_2
+132.252.156.206 slots=4 max-slots=4
