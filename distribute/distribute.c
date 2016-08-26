@@ -149,9 +149,7 @@ char** get_list_of_sims(int nr_of_sims, char* filename){
 	files[line] = (char*) malloc(DIGEST_SIZE + 1);
 	while((ch = fgetc(fp)) != EOF){
 		if (ch == '\n'){
-			str_pos++;
 			files[line][str_pos] = '\0';
-			printf("%s\n", files[line]);
 			line++;
 			files[line] = (char*) malloc(DIGEST_SIZE +1);
 			str_pos = 0;
