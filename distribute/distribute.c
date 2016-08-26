@@ -12,10 +12,10 @@
 
 
 
-void master(int argc, char *argv[])
+void master(int num_sims, char *sims[])
 {
     int next_work_element = 0;
-    int workPoolSize = argc -1;
+    int workPoolSize = num_sims;
     
     int ntasks, rank;
     char* work = (char *) malloc(DIGEST_SIZE+1);
@@ -29,10 +29,11 @@ void master(int argc, char *argv[])
     /*
     * Seed the slaves.
     */
+    
     for (rank = 1; rank < ntasks; ++rank) {
-        strncpy(work, argv[next_work_element + 1], DIGEST_SIZE+1);
+        strncpy(work, sims[next_work_element], DIGEST_SIZE+1);
         next_work_element++;
-	printf("%i/%i:starting job: %s on rank: %i\n", next_work_element -1, workPoolSize, work, rank);
+	printf("%i/%i:starting job: %s on rank: %i\n", next_work_element, workPoolSize, work, rank);
         MPI_Send(work,         /* message buffer */
         DIGEST_SIZE+1,              /* one data item */
         MPI_CHAR,        /* data item is an integer */
@@ -58,7 +59,7 @@ void master(int argc, char *argv[])
         MPI_Send(work, DIGEST_SIZE+1, MPI_BYTE, status.MPI_SOURCE,
         WORKTAG, MPI_COMM_WORLD);
         if(next_work_element != workPoolSize)
-            strcpy(work, argv[next_work_element + 1]);
+            strcpy(work, sims[next_work_element]);
         next_work_element++;
     }
 /*
@@ -115,6 +116,54 @@ void slave()
     }
 }
 
+int get_num_sims(char *filename){
+	FILE* fp = fopen(filename, "r");
+ 	int ch = 0;
+	int lines = 0;
+	if (fp == NULL){
+		return 0;
+	}
+	
+	while ((ch = fgetc(fp)) != EOF)
+	{
+		if (ch == '\n'){
+			lines++;
+		}
+	}
+	fclose(fp);
+	return lines;
+}
+char** get_list_of_sims(int nr_of_sims, char* filename){
+	FILE* fp = fopen(filename, "r");
+	if (fp == NULL)
+	{
+		printf("Unable to open file Provided!");
+		return NULL;
+	}
+
+	int line = 0;
+	int ch = 0;
+	int str_pos = 0;
+	char** files = (char**) malloc(nr_of_sims * sizeof(char*));
+	
+	files[line] = (char*) malloc(DIGEST_SIZE + 1);
+	while((ch = fgetc(fp)) != EOF){
+		if (ch == '\n'){
+			str_pos++;
+			files[line][str_pos] = '\0';
+			printf("%s\n", files[line]);
+			line++;
+			files[line] = (char*) malloc(DIGEST_SIZE +1);
+			str_pos = 0;
+		}else{
+			files[line][str_pos] = ch;
+			str_pos++;
+		}
+			
+	}
+	return files;	
+}
+
 int main(int argc, char *argv[])
 {
     int         myrank;
@@ -122,10 +171,14 @@ int main(int argc, char *argv[])
     MPI_Comm_rank(
     MPI_COMM_WORLD,   /* always use this */
     &myrank);      /* process rank, 0 thru N-1 */
-    if (myrank == 0) {
-        master(argc, argv);
+   if (myrank == 0) {
+	int num_sims = get_num_sims(argv[1]);
+    	char** sims = get_list_of_sims(num_sims, argv[1]);
+        master(num_sims, sims);
     } else {
         slave();
     }
     MPI_Finalize();       /* cleanup MPI */
 }
+
+
