@@ -3,6 +3,7 @@
 import argparse
 import sys
 import httplib, urllib
+import datetime
 from neurogenesis import demux
 from neurogenesis import runner
 from neurogenesis import extractor
@@ -25,6 +26,8 @@ def main():
     arg_parser.add_argument("--metaFile", help="Meta file where simulation metadata is stored")
     arg_parser.add_argument("--plotScript", help="location of the plot script")
     arg_parser.add_argument("--notificationKeyFile", help="location of the pushover keyfile")
+    arg_parser.add_argument("--name", help="Name of the simulation Run to ease identification")
+
     args = arg_parser.parse_args()
     args = write_default_parameters(args)
 
@@ -50,6 +53,7 @@ def main():
 def run_simulation(args, simulations):
 
         Logger.info("Starting distributed Simulation with %i ranks" % args.nrRanks)
+        simulations.execution_date = datetime.datetime.now()
         runner.run_simulation(args.distributionBinary, args.hostfile, args.nrRanks, simulations)
 
 def extract_scalars(args):
@@ -65,7 +69,9 @@ def write_sim_config(args):
     if args.inifile is None:
         Logger.error("No ini File specified!")
         sys.exit(-127)
-    return demux.demux_and_write_simulation(args.inifile, args.outdir, args.inetdir, args.additionalFiles, args.omnetdir)
+    simulations = demux.demux_and_write_simulation(args.inifile, args.outdir, args.inetdir, args.additionalFiles, args.omnetdir)
+    simulations.name = args.name
+    return simulations
 
 def send_notification(args):
     pushover_secret_file = open(args.notificationKeyFile, "r")
