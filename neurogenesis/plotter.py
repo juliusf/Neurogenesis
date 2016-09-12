@@ -17,6 +17,13 @@ class SimulationConfig():
         self.x_axis_parameter = ""
         self.y_axis_parameter = ""
 
+
+def check_filter(sim, filter):
+    if sim.results[filter[0] == filter[1]]:
+        return True
+    else:
+        return False
+
 def load_plot_config(path):
 
 
@@ -30,8 +37,15 @@ def get_datapoints_in_buckets(simulations, x_axis_attr, y_axis_attr, filter=None
     datapoints = []
     data_buckets = {}
     for sim in simulations.values():
-        if not filter or sim.results[filter[0]] == filter[1]:
-            datapoints.append((sim.results[x_axis_attr], sim.results[y_axis_attr]))
+        if type(filter) is tuple:
+            if not filter or sim.results[filter[0]] == filter[1]:
+                datapoints.append((sim.results[x_axis_attr], sim.results[y_axis_attr]))
+        else:
+            f = lambda x,y: True if check_filter(sim, x) and check_filter(sim, y) else False
+            result = reduce(f, filter)
+            if result:
+                datapoints.append((sim.results[x_axis_attr]))
+
     for point in datapoints:
         if point[0] not in data_buckets:
             data_buckets[point[0]] = []
