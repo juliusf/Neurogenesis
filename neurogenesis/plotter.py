@@ -19,8 +19,8 @@ class SimulationConfig():
 
 
 def check_filter(sim, filter):
-    if sim.results[filter[0] == filter[1]]:
-        return True
+    if sim.results[filter[0]] == filter[1]:
+	return True
     else:
         return False
 
@@ -44,7 +44,7 @@ def get_datapoints_in_buckets(simulations, x_axis_attr, y_axis_attr, filter=None
             f = lambda x,y: True if check_filter(sim, x) and check_filter(sim, y) else False
             result = reduce(f, filter)
             if result:
-                datapoints.append((sim.results[x_axis_attr]))
+                datapoints.append((sim.results[x_axis_attr], sim.results[y_axis_attr]))
 
     for point in datapoints:
         if point[0] not in data_buckets:
