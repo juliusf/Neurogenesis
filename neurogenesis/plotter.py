@@ -1,13 +1,6 @@
 
 import pickle
-import matplotlib as mpl
-mpl.use('pdf')
-import matplotlib.pyplot as plt
-import seaborn as sns
-import numpy as np
-import datetime
-from scipy import stats
-from matplotlib.backends.backend_pdf import PdfPages
+import imp
 
 class SimulationConfig():
     def __init__(self):
@@ -20,7 +13,7 @@ class SimulationConfig():
 
 def check_filter(sim, filter):
     if sim.results[filter[0]] == filter[1]:
-	return True
+        return True
     else:
         return False
 
@@ -58,8 +51,7 @@ def get_datapoints_in_buckets(simulations, x_axis_attr, y_axis_attr, filter=None
     return sorted(tuples, key=lambda x: x[0])
 
 def plot_simulations(simulations, plot_script_path):
-    file = open(plot_script_path, "rb")
-    plot_script = file.read()
-    file.close()
-    exec(plot_script)
+    mod = imp.load_source("plot", plot_script_path)
+    mod.plot(simulations)
+
 
