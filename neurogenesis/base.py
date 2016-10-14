@@ -7,12 +7,10 @@ class SimulationRun():
         self.last_executed = 0
         self.path = ""
         self.results = {}
-        self.execution_date = None
-        self.name = None
 
 
 def serialize_sim_data(simName, simulations):
-    file = open(simName, "wb")
+    file = open(simName, "wb+")
     pickle.dump(simulations, file)
     file.close()
 

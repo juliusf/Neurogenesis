@@ -26,7 +26,6 @@ def main():
     arg_parser.add_argument("--metaFile", help="Meta file where simulation metadata is stored")
     arg_parser.add_argument("--plotScript", help="location of the plot script")
     arg_parser.add_argument("--notificationKeyFile", help="location of the pushover keyfile")
-    arg_parser.add_argument("--name", help="Name of the simulation Run to ease identification")
 
     args = arg_parser.parse_args()
     args = write_default_parameters(args)
@@ -35,8 +34,6 @@ def main():
         Logger.info("Creating simulation configs...")
         simulations = write_sim_config(args)
         run_simulation(args, simulations)
-        Logger.info("extracting scalars...")
-        extract_scalars(args)
         Logger.info("Saving simulation Metadata")
         serialize_sim_data(args.metaFile, simulations)
         send_notification(args)
@@ -51,9 +48,7 @@ def main():
         Logger.error("Invlaid command: %s" % str(args.command))
 
 def run_simulation(args, simulations):
-
         Logger.info("Starting distributed Simulation with %i ranks" % args.nrRanks)
-        simulations.execution_date = datetime.datetime.now()
         runner.run_simulation(args.distributionBinary, args.hostfile, args.nrRanks, simulations)
 
 def extract_scalars(args):
@@ -70,7 +65,6 @@ def write_sim_config(args):
         Logger.error("No ini File specified!")
         sys.exit(-127)
     simulations = demux.demux_and_write_simulation(args.inifile, args.outdir, args.inetdir, args.additionalFiles, args.omnetdir)
-    simulations.name = args.name
     return simulations
 
 def send_notification(args):
@@ -124,8 +118,7 @@ def write_default_parameters(args):
         args.plotScript = "plot.py"
 
     if args.notificationKeyFile is None:
-        args.notificationKeyFile = "pushover_secret"
-
+    	args.notificationKeyFile = "pushover_secret"
     return args
 
 if __name__ == '__main__':
