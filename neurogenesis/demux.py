@@ -97,7 +97,11 @@ def create_bash_script(target_folder, omnet_exec, inet_dir):
     TARGET=%s
     cd $DIR
     %s -G -u Cmdenv -l $DIR/INET -n  $DIR/inet:$DIR/../tutorials:$DIR/../examples:$DIR/../examples:$TARGET/ $TARGET/omnetpp.ini > /dev/null
-
+    rc=$?
+    if [[ $rc != 0 ]]; then
+        echo There is something wrong! omnet exited with non 0 exit code!
+        exit $rc
+    fi
     """ % (inet_dir[:-1], target_folder, omnet_exec)
     full_path = target_folder + "/run.sh"
     if os.path.exists(full_path):
