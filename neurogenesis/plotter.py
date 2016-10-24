@@ -1,4 +1,4 @@
-
+from neurogenesis.util import Logger
 import pickle
 import imp
 
@@ -11,11 +11,15 @@ class SimulationConfig():
         self.y_axis_parameter = ""
 
 
-def check_filter(sim, filter):
-    if sim.results[filter[0]] == filter[1]:
-        return True
-    else:
-        return False
+def check_filter(sim, filter_list):
+    for filter in filter_list:
+        try:
+            if not sim.results[filter[0]] == filter[1]:
+               return False
+        except KeyError:
+            Logger.error("The dataset does not contain filter value: %s" % (filter[0]))
+            exit(-15)
+    return True
 
 def load_plot_config(path):
 
@@ -34,8 +38,7 @@ def get_datapoints_in_buckets(simulations, x_axis_attr, y_axis_attr, filter=None
             if not filter or sim.results[filter[0]] == filter[1]:
                 datapoints.append((sim.results[x_axis_attr], sim.results[y_axis_attr]))
         else:
-            f = lambda x,y: True if check_filter(sim, x) and check_filter(sim, y) else False
-            result = reduce(f, filter)
+            result = check_filter(sim, filter)
             if result:
                 datapoints.append((sim.results[x_axis_attr], sim.results[y_axis_attr]))
 
