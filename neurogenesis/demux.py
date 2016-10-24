@@ -25,7 +25,7 @@ def demux_and_write_simulation(ini_file, out_dir, inet_dir, additional_files, om
     simulation_runs = {}
     with open(ini_file) as input_file:
         for row in input_file:
-            if '{' in row:
+            if '{' in row.split('#')[0]: # ignore comments (T)
                 line = create_dynamic_line(row)
                 dynamic_lines.append(line)
                 lines.append(line)
@@ -98,7 +98,7 @@ def create_bash_script(target_folder, omnet_exec, inet_dir):
     cd $DIR
     %s -G -u Cmdenv -l $DIR/INET -n  $DIR/inet:$DIR/../tutorials:$DIR/../examples:$DIR/../examples:$TARGET/ $TARGET/omnetpp.ini > /dev/null
     rc=$?
-    if [[ $rc != 0 ]]; then
+    if [ $rc -gt 0 ]; then
         echo There is something wrong! omnet exited with non 0 exit code!
         exit $rc
     fi

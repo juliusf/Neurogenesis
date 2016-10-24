@@ -68,7 +68,11 @@ def write_sim_config(args):
     return simulations
 
 def send_notification(args):
-    pushover_secret_file = open(args.notificationKeyFile, "r")
+    try:
+    	pushover_secret_file = open(args.notificationKeyFile, "r")
+    except IOError:
+        Logger.warning("pushover secret-file does not exist")
+        return
     secret = pushover_secret_file.read().strip()
     conn = httplib.HTTPSConnection("api.pushover.net:443")
     conn.request("POST", "/1/messages.json",

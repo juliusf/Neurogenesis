@@ -30,7 +30,7 @@ void master(int num_sims, char *sims[])
     * Seed the slaves.
     */
     
-    for (rank = 1; rank < ntasks; ++rank) {
+    for (rank = 1; rank < ntasks && rank <= workPoolSize; ++rank) { // Fix Overflow when workPoolSize < rank (T)
         strncpy(work, sims[next_work_element], DIGEST_SIZE+1);
         next_work_element++;
 	printf("%i/%i:starting job: %s on rank: %i\n", next_work_element, workPoolSize, work, rank);
@@ -46,7 +46,7 @@ void master(int num_sims, char *sims[])
 * Receive a result from any slave and dispatch a new work
 * request work requests have been exhausted.
 */
-    while (next_work_element <= workPoolSize) {
+    while (next_work_element < workPoolSize) {
         MPI_Recv(&result,       /* message buffer */
         1,              /* one data item */
         MPI_INT,     /* of type int*/
@@ -54,18 +54,18 @@ void master(int num_sims, char *sims[])
         MPI_ANY_TAG,    /* any type of message */
         MPI_COMM_WORLD, /* always use this */
         &status);       /* received message info */
+        next_work_element++;
 	printf("received exit code: %i from rank %i\n", result, status.MPI_SOURCE);
 	printf("%i/%i: starting job: %s on rank: %i\n", next_work_element, workPoolSize, work, status.MPI_SOURCE);
         MPI_Send(work, DIGEST_SIZE+1, MPI_BYTE, status.MPI_SOURCE,
         WORKTAG, MPI_COMM_WORLD);
         if(next_work_element != workPoolSize)
             strcpy(work, sims[next_work_element]);
-        next_work_element++;
     }
 /*
 * Receive results for outstanding work requests.
 */
-    for (rank = 1; rank < ntasks; ++rank) {
+    for (rank = 1; rank < ntasks && rank <= workPoolSize; ++rank) { // Fix Overflow when workPoolSize < rank (T)
         MPI_Recv(&result, 1, MPI_INT, MPI_ANY_SOURCE,
         MPI_ANY_TAG, MPI_COMM_WORLD, &status);
     	printf("received exit code: %i from rank %i\n", result, status.MPI_SOURCE);
