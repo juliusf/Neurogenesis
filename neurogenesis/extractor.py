@@ -28,10 +28,10 @@ def extract_parameter_value(line):
     if line.strip().endswith('"'):
         segments = line.split('"')
         value = segments[-2]
-        value = re.sub("[^0-9e\-]", "", value) #replaces all non numeric values
+        value = re.sub("[^0-9e\-\.]", "", value) #replaces all non numeric values
 	return float(value)
     else:
         segments = line.strip().split(" ")
         value = segments[-1]  
-        value = re.sub("[^0-9e\-]", "", value) #replaces all non numeric values
+        value = re.sub("[^0-9e\-\.]", "", value) #replaces all non numeric values
 	return float(value)
