@@ -1,5 +1,5 @@
 import re
-
+from neurogenesis.util import Logger
 def extract(scalars_file, simulations):
     scalars = []
     scalars_file = open(scalars_file, "rb")
@@ -17,6 +17,7 @@ def extract(scalars_file, simulations):
                     if scalar in line:
                         simulation.results[scalar] = extract_parameter_value(line)
         result_file.close()
+    Logger.info("Extracted scalars of %s simulations." % (len(simulations.values())))
     return simulations
 
 def extract_scalar_value(line):

@@ -21,6 +21,7 @@ void master(int num_sims, char *sims[])
     char* work = (char *) malloc(DIGEST_SIZE+1);
     ntasks = workPoolSize;
     int       result = 0; 
+    int	results_collected = 0;
     printf("got %i simulation runs\n", workPoolSize);
     MPI_Status     status;
     MPI_Comm_size(
@@ -47,6 +48,11 @@ void master(int num_sims, char *sims[])
 * request work requests have been exhausted.
 */
     while (next_work_element < workPoolSize) {
+        if(next_work_element != workPoolSize)
+            strcpy(work, sims[next_work_element]);
+        else
+            break;
+        next_work_element++;
         MPI_Recv(&result,       /* message buffer */
         1,              /* one data item */
         MPI_INT,     /* of type int*/
@@ -54,13 +60,10 @@ void master(int num_sims, char *sims[])
         MPI_ANY_TAG,    /* any type of message */
         MPI_COMM_WORLD, /* always use this */
         &status);       /* received message info */
-        next_work_element++;
 	printf("received exit code: %i from rank %i\n", result, status.MPI_SOURCE);
 	printf("%i/%i: starting job: %s on rank: %i\n", next_work_element, workPoolSize, work, status.MPI_SOURCE);
         MPI_Send(work, DIGEST_SIZE+1, MPI_BYTE, status.MPI_SOURCE,
         WORKTAG, MPI_COMM_WORLD);
-        if(next_work_element != workPoolSize)
-            strcpy(work, sims[next_work_element]);
     }
 /*
 * Receive results for outstanding work requests.
@@ -69,6 +72,7 @@ void master(int num_sims, char *sims[])
         MPI_Recv(&result, 1, MPI_INT, MPI_ANY_SOURCE,
         MPI_ANY_TAG, MPI_COMM_WORLD, &status);
     	printf("received exit code: %i from rank %i\n", result, status.MPI_SOURCE);
+ 	results_collected++;
     }
 /*
 * Tell all the slaves to exit.
@@ -76,6 +80,8 @@ void master(int num_sims, char *sims[])
     for (rank = 1; rank < ntasks; ++rank) {
         MPI_Send(0, 0, MPI_INT, rank, DIETAG, MPI_COMM_WORLD);
     }
+
+    printf("Successfully perfomed %i results during simulation.", results_collected);
 }
 
 void slave()

@@ -3,7 +3,7 @@ import hashlib
 import os
 import stat
 from neurogenesis.base import SimulationRun
-
+from neurogenesis.util import Logger
 
 class DynamicLine(): # TODO better name?
     def __init__(self):
@@ -19,7 +19,6 @@ class DynamicLine(): # TODO better name?
         return self.__str__()
 
 def demux_and_write_simulation(ini_file, out_dir, inet_dir, additional_files, omnet_exec):
-
     lines = []
     dynamic_lines = []
     simulation_runs = {}
@@ -43,7 +42,7 @@ def demux_and_write_simulation(ini_file, out_dir, inet_dir, additional_files, om
         [run.config.append(line.get_current_value_tuple()) for line in dynamic_lines]
         run.path = out_dir + hash + "/"
         simulation_runs[hash] = run
-
+    Logger.info("Generated %s simulation configs." % (len(simulation_runs)))
     return simulation_runs
 
 def write_sim_data(omnet_exec, inet_dir, folder_path, lines, hash, additional_files):

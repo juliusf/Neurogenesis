@@ -1,4 +1,4 @@
-
+from neurogenesis.util import Logger
 from subprocess import call
 import os
 
@@ -18,3 +18,5 @@ def write_list_of_sims(file, simulations):
     for hash in simulations.keys():
         f.write(hash + "\n")
     f.close()
+    Logger.info("Passed %s simulations to MPI runner." % (len(simulations.keys())))
+    
