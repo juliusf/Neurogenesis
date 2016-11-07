@@ -23,6 +23,7 @@ def main():
     arg_parser.add_argument("--distributionBinary", help="location of the MPI distribution binary")
     arg_parser.add_argument("--hostfile", help = "location of the host file")
     arg_parser.add_argument("--extractScalarsFile", help= "List of scalars to be extracted")
+    arg_parser.add_argument("--extractVectorsFile", help= "List of vectors to be extracted")
     arg_parser.add_argument("--metaFile", help="Meta file where simulation metadata is stored")
     arg_parser.add_argument("--plotScript", help="location of the plot script")
     arg_parser.add_argument("--notificationKeyFile", help="location of the pushover keyfile")
@@ -51,9 +52,18 @@ def run_simulation(args, simulations):
         Logger.info("Starting distributed Simulation with %i ranks" % args.nrRanks)
         runner.run_simulation(args.distributionBinary, args.hostfile, args.nrRanks, simulations)
 
+
 def extract_scalars(args):
     simulations = deserialize_sim_data(args.metaFile)
-    return extractor.extract(args.extractScalarsFile, simulations)
+    try:
+        simulations = extractor.extract(args.extractScalarsFile, simulations)
+    except IOError:
+        Logger.warning("Can't read %s" % args.extractScalarsFile)
+    try:
+        simulations = extractor.extract_vectors(args.extractVectorsFile, simulations)
+    except IOError:
+        Logger.warning("Can't read %s" % args.extractVectorsFile)
+    return simulations
 
 
 def plot_simfile(args):
@@ -114,6 +124,9 @@ def write_default_parameters(args):
 
     if args.extractScalarsFile is None:
         args.extractScalarsFile = "scalars.txt"
+
+    if args.extractVectorsFile is None:
+        args.extractVectorsFile = "vectors.txt"
 
     if args.metaFile is None:
         args.metaFile = "meta.pickle"
