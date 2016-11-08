@@ -8,7 +8,8 @@ class SimulationRun():
         self.last_executed = 0
         self.path = ""
         self.results = {}
-        self.result_vectors = {}
+        self.result_vectors = {} # {('module', 'name'): [(event, simSec, value), ...], ...}
+        self.parameters = []
 
 
 def serialize_sim_data(simName, simulations):

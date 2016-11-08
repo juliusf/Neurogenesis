@@ -11,6 +11,7 @@ class DynamicLine(): # TODO better name?
         self.dynamic_part = ""
         self.tail_part = ""
         self.current_print_representation = ""
+        self.parameter_representation = {}
     def get_current_value_tuple(self):
         return (self.head_part, self.current_print_representation, self.tail_part)
     def __str__(self):
@@ -33,11 +34,12 @@ def demux_and_write_simulation(ini_file, out_dir, inet_dir, additional_files, om
 
     all_dynamic_lines = [line.dynamic_part for line in dynamic_lines]
     for perm in itertools.product(*all_dynamic_lines):
+        run = SimulationRun()
         for idx, val in enumerate(perm):
             dynamic_lines[idx].current_print_representation = val
+            run.parameters.append((dynamic_lines[idx].head_part.split()[0], val.strip()))
         hash = create_file_hash(lines)
         write_sim_data(omnet_exec, inet_dir, out_dir, lines, hash, additional_files)
-        run = SimulationRun()
         run.hash = hash
         [run.config.append(line.get_current_value_tuple()) for line in dynamic_lines]
         run.path = out_dir + hash + "/"
