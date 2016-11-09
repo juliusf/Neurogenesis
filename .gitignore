@@ -130,3 +130,4 @@ ENV/
 distribute/distribute
 
 hostfile
+.nfs*

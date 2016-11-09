@@ -45,25 +45,26 @@ def extract_vectors(vector_file, simulations):
     try:
        with open(vector_file, "rb") as vector_file:
            vectors = [vector.rstrip() for vector in vector_file]
-    except IOError as e:
-       Logger.error("Results file for simulation: %s not found! error: %s" % (vector_file, e.strerror))
-       sys.exit(-1)
     for simulation in simulations.values():
-        with open(simulation.path + "results/General-0.vec") as result_vector:
-            values = {}
-            values_names = {}
-            for line in result_vector:
-                if line.startswith("vector"):
-                    nr, module, name = line.split("  ")[0:3]
-                    nr = nr.split(" ")[1]
-                    if check_match(vectors, module, name):
-                        values[nr] = []
-                        values_names[nr] = (module, name, nr)
-                elif len(line.strip()) > 0 and line.split()[0] in values:
-                    v = [float(x) for x in line.split()[1:4]]
-                    values[line.split()[0]].append(v)
-        for k in values_names:
-            simulation.result_vectors[values_names[k]] = values[k]
+        try:
+            with open(simulation.path + "results/General-0.vec") as result_vector:
+                values = {}
+                values_names = {}
+                for line in result_vector:
+                    if line.startswith("vector"):
+                        nr, module, name = line.split("  ")[0:3]
+                        nr = nr.split(" ")[1]
+                        if check_match(vectors, module, name):
+                            values[nr] = []
+                            values_names[nr] = (module, name, nr)
+                    elif len(line.strip()) > 0 and line.split()[0] in values:
+                        v = [float(x) for x in line.split()[1:4]]
+                        values[line.split()[0]].append(v)
+            for k in values_names:
+                simulation.result_vectors[values_names[k]] = values[k]
+        except IOError as e:
+            Logger.error("Results file for simulation: %s not found! error: %s" % (vector_file, e.strerror))
+            sys.exit(-1)
     return simulations
 
 
