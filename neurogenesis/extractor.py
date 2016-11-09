@@ -42,9 +42,9 @@ def extract_parameter_value(line):
 
 
 def extract_vectors(vector_file, simulations):
-    try:
-       with open(vector_file, "rb") as vector_file:
-           vectors = [vector.rstrip() for vector in vector_file]
+    
+    with open(vector_file, "rb") as vector_file:
+        vectors = [vector.rstrip() for vector in vector_file]
     for simulation in simulations.values():
         try:
             with open(simulation.path + "results/General-0.vec") as result_vector:
