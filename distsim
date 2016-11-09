@@ -57,12 +57,12 @@ def extract_scalars(args):
     simulations = deserialize_sim_data(args.metaFile)
     try:
         simulations = extractor.extract(args.extractScalarsFile, simulations)
-    except IOError:
-        Logger.warning("Can't read %s" % args.extractScalarsFile)
+    except IOError as e:
+        Logger.warning("Can't read scalars file: %s, exception: %s" % (args.extractScalarsFile, e.strerror))
     try:
         simulations = extractor.extract_vectors(args.extractVectorsFile, simulations)
-    except IOError:
-        Logger.warning("Can't read %s" % args.extractVectorsFile)
+    except IOError as e:
+        Logger.warning("Can't read vectors file: %s, exception: %s" % (args.extractVectorsFile, e.strerror))
     return simulations
 
 

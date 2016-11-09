@@ -1,4 +1,5 @@
 import re
+import sys
 from neurogenesis.util import Logger
 
 
@@ -41,8 +42,12 @@ def extract_parameter_value(line):
 
 
 def extract_vectors(vector_file, simulations):
-    with open(vector_file, "rb") as vector_file:
-        vectors = [vector.rstrip() for vector in vector_file]
+    try:
+       with open(vector_file, "rb") as vector_file:
+           vectors = [vector.rstrip() for vector in vector_file]
+    except IOError as e:
+       Logger.error("Results file for simulation: %s not found! error: %s" % (vector_file, e.strerror))
+       sys.exit(-1)
     for simulation in simulations.values():
         with open(simulation.path + "results/General-0.vec") as result_vector:
             values = {}
