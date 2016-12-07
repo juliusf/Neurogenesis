@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <unistd.h>
 
 #define WORKTAG     1
 #define DIETAG     2
@@ -143,7 +144,7 @@ char** get_list_of_sims(int nr_of_sims, char* filename){
 	FILE* fp = fopen(filename, "r");
 	if (fp == NULL)
 	{
-		printf("Unable to open file Provided!");
+		printf("Unable to open file %s\n", filename);
 		return NULL;
 	}
 
@@ -175,7 +176,7 @@ int main(int argc, char *argv[])
     MPI_Comm_rank(
     MPI_COMM_WORLD,   /* always use this */
     &myrank);      /* process rank, 0 thru N-1 */
-   if (myrank == 0) {
+   if (myrank == 0){
 	int num_sims = get_num_sims(argv[1]);
     	char** sims = get_list_of_sims(num_sims, argv[1]);
         master(num_sims, sims);

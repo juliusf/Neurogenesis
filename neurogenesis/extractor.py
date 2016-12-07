@@ -25,8 +25,9 @@ def extract(scalars_file, simulations):
 
 
 def extract_scalar_value(line):
-    end_of_scalar_name = line.rfind("\"")
-    nr = line[end_of_scalar_name + 1:].strip()
+    #end_of_scalar_name = line.rfind("\"")
+    #nr = line[end_of_scalar_name + 1:].strip()
+    nr = line.strip().split()[-1]
     return float(nr)
 
 
@@ -42,9 +43,9 @@ def extract_parameter_value(line):
 
 
 def extract_vectors(vector_file, simulations):
-    
     with open(vector_file, "rb") as vector_file:
         vectors = [vector.rstrip() for vector in vector_file]
+    encountered_filters = {}
     for simulation in simulations.values():
         try:
             with open(simulation.path + "results/General-0.vec") as result_vector:
@@ -54,7 +55,7 @@ def extract_vectors(vector_file, simulations):
                     if line.startswith("vector"):
                         nr, module, name = line.split("  ")[0:3]
                         nr = nr.split(" ")[1]
-                        if check_match(vectors, module, name):
+                        if check_match(vectors, module, name, encountered_filters):
                             values[nr] = []
                             values_names[nr] = (module, name, nr)
                     elif len(line.strip()) > 0 and line.split()[0] in values:
@@ -65,10 +66,19 @@ def extract_vectors(vector_file, simulations):
         except IOError as e:
             Logger.error("Results file for simulation: %s not found! error: %s" % (vector_file, e.strerror))
             sys.exit(-1)
+
+    for k,v in encountered_filters.iteritems():
+        if not v:
+            Logger.warning("Exctractor couldn't find match for filter: %s" % (k))
+        else:
+            Logger.info("Extractor found match for filter %s" %  (k))
     return simulations
 
 
-def check_match(patterns, module, name):
+def check_match(patterns, module, name, encountered_filters):
     for pattern in patterns:
+        if pattern not in encountered_filters:
+            encountered_filters[pattern] = False
         if module in pattern and name in pattern:
+            encountered_filters[pattern] = True
             return True

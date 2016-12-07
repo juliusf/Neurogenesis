@@ -96,14 +96,16 @@ def send_notification(args):
     pushover_secret_file.close()
 
 def write_default_parameters(args):
-    if args.nrRanks is None:
-        args.nrRanks = 31
-
     if args.distributionBinary is None:
         args.distributionBinary = "/mnt/distsim/simtools/distribute/distribute"
 
     if args.hostfile  is None:
         args.hostfile = "/mnt/distsim/simtools/hostfile"
+
+    if args.nrRanks is None:
+        with open(args.hostfile, "r") as f:
+            h = [[y.split("=") for y in x.strip().split()] for x in f if len(x.strip()) > 1 and x[0] != '#']
+        args.nrRanks = reduce(lambda x,y: x+int(y[1][1]), h, 0)
 
     if args.outdir is None:
         args.outdir = "/mnt/distsim/simulations/"
