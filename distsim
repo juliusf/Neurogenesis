@@ -102,10 +102,15 @@ def write_default_parameters(args):
     if args.hostfile  is None:
         args.hostfile = "/mnt/distsim/simtools/hostfile"
 
+    #automatically parses hostfile to get the correct number of ranks
     if args.nrRanks is None:
-        with open(args.hostfile, "r") as f:
-            h = [[y.split("=") for y in x.strip().split()] for x in f if len(x.strip()) > 1 and x[0] != '#']
-        args.nrRanks = reduce(lambda x,y: x+int(y[1][1]), h, 0)
+        try:
+            with open(args.hostfile, "r") as f:
+                h = [[y.split("=") for y in x.strip().split()] for x in f if len(x.strip()) > 1 and x[0] != '#']
+            args.nrRanks = reduce(lambda x,y: x+int(y[1][1]), h, 0)
+        except IOError as e:
+            Logger.warning("No hostfile specified and default location %s not present!" % (args.hostfile))
+            args.nrRanks = 0
 
     if args.outdir is None:
         args.outdir = "/mnt/distsim/simulations/"
