@@ -9,24 +9,27 @@ def extract(scalars_file, simulations):
     [scalars.append(scalar.rstrip()) for scalar in scalars_file]
     scalars_file.close()
     for simulation in simulations.values():
-        result_file = open(simulation.path + "results/General-0.sca")
-        for line in result_file:
-            if line.startswith("scalar"):
-                for scalar in scalars:
-                    if scalar in line:
-                        simulation.results[scalar] = extract_scalar_value(line)
-            elif line.startswith("param"):
-                for scalar in scalars:
-                    if scalar in line:
-                        simulation.results[scalar] = extract_parameter_value(line)
-        result_file.close()
+        try:
+            with open(simulation.path + "results/General-0.sca") as result_file:
+                for line in result_file:
+                    if line.startswith("scalar"):
+                        for scalar in scalars:
+                            if scalar in line:
+                                simulation.results[scalar] = extract_scalar_value(line)
+                    elif line.startswith("param"):
+                        for scalar in scalars:
+                            if scalar in line:
+                                simulation.results[scalar] = extract_parameter_value(line)
+        except IOError as e:
+            Logger.error("Results file for simulation: %s not found! error: %s" % (simulation.path, e.strerror))
+            sys.exit(-1)
     Logger.info("Extracted scalars of %s simulations." % (len(simulations.values())))
     return simulations
 
 
 def extract_scalar_value(line):
-    #end_of_scalar_name = line.rfind("\"")
-    #nr = line[end_of_scalar_name + 1:].strip()
+    # end_of_scalar_name = line.rfind("\"")
+    # nr = line[end_of_scalar_name + 1:].strip()
     nr = line.strip().split()[-1]
     return float(nr)
 
@@ -64,14 +67,14 @@ def extract_vectors(vector_file, simulations):
             for k in values_names:
                 simulation.result_vectors[values_names[k]] = values[k]
         except IOError as e:
-            Logger.error("Results file for simulation: %s not found! error: %s" % (vector_file, e.strerror))
+            Logger.error("Results file for simulation: %s not found! error: %s" % (simulation.path, e.strerror))
             sys.exit(-1)
 
-    for k,v in encountered_filters.iteritems():
+    for k, v in encountered_filters.iteritems():
         if not v:
             Logger.warning("Exctractor couldn't find match for filter: %s" % (k))
         else:
-            Logger.info("Extractor found match for filter %s" %  (k))
+            Logger.info("Extractor found match for filter %s" % (k))
     return simulations
 
 

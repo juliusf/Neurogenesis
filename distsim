@@ -7,7 +7,7 @@ import datetime
 from neurogenesis import demux
 from neurogenesis import runner
 from neurogenesis import extractor
-from  neurogenesis.util import Logger
+from neurogenesis.util import Logger
 from neurogenesis.base import serialize_sim_data, deserialize_sim_data
 from neurogenesis.plotter import plot_simulations
 
@@ -27,6 +27,7 @@ def main():
     arg_parser.add_argument("--metaFile", help="Meta file where simulation metadata is stored")
     arg_parser.add_argument("--plotScript", help="location of the plot script")
     arg_parser.add_argument("--notificationKeyFile", help="location of the pushover keyfile")
+    arg_parser.add_argument("--ignore", help="Token is ignored")
 
     args = arg_parser.parse_args()
     args = write_default_parameters(args)
