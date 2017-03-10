@@ -25,13 +25,13 @@ class MPITags:
     FEEDBACK = 3
 
 class Cluster():
-    comm = MPI.COMM_WORLD
     MASTER_CONTROLLER = 0
 
-    def __init__(self):
+    def __init__(self, comm):
         self.master_controller = self.MASTER_CONTROLLER
-        self.nr_ranks = self.comm.Get_size()
+        self.nr_ranks = comm.Get_size() -1
         self.active_ranks = []
+        self.comm = comm
 
     def schedule(self, queue):
         for i in range(self.master_controller + 1, self.nr_ranks):
@@ -42,6 +42,7 @@ class Cluster():
                 self.active_ranks.append(i)
 
     def wait_and_reschedule(self, queue):
+        print("starting to reschedule")
         while (queue.has_next()):
             reception_status = MPI.Status()
             exit_code = self.comm.recv(source=MPI.ANY_SOURCE, tag=MPITags.FEEDBACK, status=reception_status)
