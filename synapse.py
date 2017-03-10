@@ -1,40 +1,11 @@
 import sys
 from mpi4py import MPI
 from neurogenesis.util import Logger, PrintColors
-
-comm = MPI.COMM_WORLD
-rank = comm.Get_rank()
-size = comm.Get_size()
-MASTER_CONTROLLER = 0
-WORKTAG = 1
-DIETAG = 2
-FEEDBACKTAG = 3
-
-class TaskQueue():
-    def __init__(self, simulations):
-        self.num_tasks = len(simulations.values())
-        self.tasks = simulations.values()
-        self.next_sim = 0
-
-    def has_next(self):
-        return self.next_sim < self.num_tasks
-
-    def get_next(self):
-        ret = self.tasks[self.next_sim]
-        self.next_sim += 1
-        return ret
-
-    def get_job_nr(self):
-        return self.next_sim
-
-class Cluster():
-    def __init__(self, nr_ranks):
-        self.nr_ranks = nr_ranks
-        self.active_ranks = []
+from neurogenesis.cluster import MPITags, Cluster, TaskQueue
 
 
 def main():
-    if rank == MASTER_CONTROLLER:
+    if Cluster.comm.Get_rank() == Cluster.MASTER_CONTROLLER:
         master()
     else:
         slave()
@@ -58,41 +29,23 @@ def master():
         sys.exit(-1)
 
     queue = TaskQueue(simulation)
+    cluster = Cluster()
+    cluster.schedule(queue)
+    cluster.wait_and_reschedule(queue)
+    cluster.synchronize()
+    cluster.kill_workers()
 
-    executed = 0
-    #initial distribution of work
-    for i in range(MASTER_CONTROLLER + 1, size):
-        if queue.has_next():
-            task = queue.get_next()
-            Logger.info(" %s/%s: sent job %s to rank %s" %(queue.get_job_nr(), queue.num_tasks, task.hash, i))
-            comm.send(task, dest=i, tag=WORKTAG)
-
-    #distribute all jobs to workers
-    while(queue.has_next()):
-        reception_status = MPI.Status()
-        exit_code = comm.recv(source=MPI.ANY_TAG, tag=FEEDBACKTAG, status=reception_status)
-        Logger.info("Recieved exit code %s from rank %s" % (exit_code, reception_status.source))
-
-        task = queue.get_next()
-        Logger.info(" %s/%s: sent job %s to rank %s" % (queue.get_job_nr(), queue.num_tasks, task.hash, reception_status.source))
-        comm.send(task, dest=reception_status.source, tag=WORKTAG)
-
-    #collect final results and shutdown
-    for i in range(MASTER_CONTROLLER + 1, size):
-        reception_status = MPI.Status()
-        exit_code = comm.recv(source=MPI.ANY_TAG, tag=FEEDBACKTAG, status=reception_status)
-        Logger.info("Recieved exit code %s from rank %s" % (exit_code, reception_status.source))
-        comm.send(0, dest=reception_status.source, tag=DIETAG)
 
 def slave():
     while True:
         reception_status = MPI.Status()
-        task = comm.recv(source=MASTER_CONTROLLER, tag=MPI.ANY_TAG, status=reception_status)
-        if reception_status.Get_tag() == WORKTAG:
-            #print(task)
+        task = Cluster.comm.recv(source=0, tag=MPI.ANY_TAG, status=reception_status)
+        # execute task
+        if reception_status.Get_tag() == MPITags.WORK:
             return_value = 0
-            comm.send(return_value, MASTER_CONTROLLER, FEEDBACKTAG)
-        elif reception_status.Get_tag() == DIETAG:
+            Cluster.comm.send(return_value, Cluster.MASTER_CONTROLLER, MPITags.FEEDBACK)
+        elif reception_status.Get_tag() == MPITags.DIE:
+            Logger.debug("rank %s exiting" %  (Cluster.comm.Get_rank()))
             sys.exit(0)
         else:
             Logger.error("Unknown TAG received!")
