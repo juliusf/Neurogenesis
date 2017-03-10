@@ -26,15 +26,23 @@ class Logger(object):
             print(PrintColors.FAIL),
             print("ERROR: "),
         elif log_type == "info":
+            print(PrintColors.DEFAULT),
             print("INFO: "),
         elif log_type == "debug":
-            print("DEBUG: ")
+            print(PrintColors.DEFAULT),
+            print("DEBUG: "),
         print(message),
         print(PrintColors.ENDC)
 
+    @staticmethod
+    def printColor(color, text):
+        print(color),
+        print(text),
+        print(PrintColors.ENDC)
 
 class PrintColors:
-    HEADER = '\033[95m'
+    DEFAULT = '\033[99m'
+    MAGENTA = '\033[95m'
     OKBLUE = '\033[94m'
     OKGREEN = '\033[92m'
     WARNING = '\033[93m'

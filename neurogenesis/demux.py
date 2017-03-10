@@ -12,6 +12,7 @@ class DynamicLine(): # TODO better name?
         self.tail_part = ""
         self.current_print_representation = ""
         self.parameter_representation = {}
+
     def get_current_value_tuple(self):
         return (self.head_part, self.current_print_representation, self.tail_part)
     def __str__(self):

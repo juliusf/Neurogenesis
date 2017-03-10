@@ -80,7 +80,7 @@ def write_sim_config(args):
 
 def send_notification(args):
     try:
-    	pushover_secret_file = open(args.notificationKeyFile, "r")
+        pushover_secret_file = open(args.notificationKeyFile, "r")
     except IOError:
         Logger.warning("pushover secret-file does not exist")
         return
