@@ -44,7 +44,8 @@ def demux_and_write_simulation(ini_file, out_dir, inet_dir, additional_files, om
         write_sim_data(omnet_exec, inet_dir, out_dir, lines, hash, additional_files, target_file)
         run.hash = hash
         [run.config.append(line.get_current_value_tuple()) for line in dynamic_lines]
-        run.path = out_dir + hash + "/run.sh"
+        run.path = out_dir + hash + "/"
+        run.executable_path = out_dir + hash + "/" + target_file
         simulation_runs[hash] = run
     Logger.info("Generated %s simulation configs." % (len(simulation_runs)))
     return simulation_runs

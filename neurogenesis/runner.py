@@ -1,18 +1,17 @@
 from neurogenesis.util import Logger, PrintColors
 from neurogenesis.cluster import Cluster, TaskQueue
 import sys
-from subprocess import call
 
+import datetime
 import os
 
 def run_simulation(path_to_execute_binary, path_to_hosts_file, nr_ranks, simulations):
     from mpi4py import MPI
-    #file = "/tmp/distsim_sims.list"
-    #write_list_of_sims(file, simulations)
-    #command = "/usr/bin/mpirun -np " + str(nr_ranks) + " --hostfile " + path_to_hosts_file + " " + path_to_execute_binary + " " + file
-    #call(command, shell=True)
+
+    start_time = datetime.datetime.now()
     mpi_info = MPI.Info.Create()
-    mpi_info.Set("hostfile", path_to_hosts_file)
+    #mpi_info.Set("hostfile", path_to_hosts_file)
+    mpi_info.Set("add-hostfile", path_to_hosts_file)
     comm = MPI.COMM_WORLD.Spawn(sys.executable,
                                args=[path_to_execute_binary],
                                maxprocs=nr_ranks-1,
@@ -25,7 +24,9 @@ def run_simulation(path_to_execute_binary, path_to_hosts_file, nr_ranks, simulat
     cluster.wait_and_reschedule(queue)
     cluster.synchronize(queue)
     cluster.kill_workers()
-    Logger.printColor(PrintColors.OKGREEN, "simulation successful")
+    duration = datetime.datetime.now() - start_time
+    Logger.printColor(PrintColors.OKGREEN, "simulation successful. Duration: %s" % (duration))
+    Logger.warning("number of tasks simulated: %s" % (len(queue.get_completed_tasks().keys())))
 
     return queue.get_completed_tasks()
 

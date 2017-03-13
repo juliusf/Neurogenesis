@@ -1,0 +1,20 @@
+---
+- hosts: sim-slaves
+  remote_user: tdr
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: update repository
+      apt:
+        update_cache: yes
+
+    - name: install packages from repository
+      action: apt pkg={{ item }} state=installed
+      with_items:
+          - python-pip
+          - libopenmpi-dev
+          - python-dev
+
+    - name: install mpi4python dependency
+      pip:
+        name: mpi4py
