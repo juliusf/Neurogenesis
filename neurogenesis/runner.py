@@ -19,17 +19,15 @@ def run_simulation(path_to_execute_binary, path_to_hosts_file, nr_ranks, simulat
                                info=mpi_info).Merge()
 
     comm.Barrier()
-    print(nr_ranks)
-    print("Current master rank: " + str(comm.Get_rank()))
-    print("number of ranks: " + str(comm.Get_size()))
     queue = TaskQueue(simulations)
     cluster = Cluster(comm)
     cluster.schedule(queue)
     cluster.wait_and_reschedule(queue)
-    cluster.synchronize()
+    cluster.synchronize(queue)
     cluster.kill_workers()
     Logger.printColor(PrintColors.OKGREEN, "simulation successful")
-    #comm.Disconnect()
+
+    return queue.get_completed_tasks()
 
 
 def write_list_of_sims(file, simulations):

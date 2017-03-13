@@ -3,7 +3,7 @@ import sys
 from mpi4py import MPI
 from neurogenesis.util import Logger, PrintColors
 from neurogenesis.cluster import MPITags, Cluster, TaskQueue
-
+from subprocess import call
 
 def main():
     comm = MPI.Comm.Get_parent().Merge()
@@ -15,9 +15,8 @@ def main():
         task = comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=reception_status)
         # execute task
         if reception_status.Get_tag() == MPITags.WORK:
-            return_value = 0
-            print(task)
-            comm.send(return_value, Cluster.MASTER_CONTROLLER, MPITags.FEEDBACK)
+            task.last_exit_code = call(task.path, shell=True)
+            comm.send(task, Cluster.MASTER_CONTROLLER, MPITags.FEEDBACK)
         elif reception_status.Get_tag() == MPITags.DIE:
             Logger.debug("rank %s exiting" %  (comm.Get_rank()))
             sys.exit(0)

@@ -40,19 +40,20 @@ def demux_and_write_simulation(ini_file, out_dir, inet_dir, additional_files, om
             dynamic_lines[idx].current_print_representation = val
             run.parameters.append((dynamic_lines[idx].head_part.split()[0], val.strip()))
         hash = create_file_hash(lines)
-        write_sim_data(omnet_exec, inet_dir, out_dir, lines, hash, additional_files)
+        target_file = "run.sh"
+        write_sim_data(omnet_exec, inet_dir, out_dir, lines, hash, additional_files, target_file)
         run.hash = hash
         [run.config.append(line.get_current_value_tuple()) for line in dynamic_lines]
-        run.path = out_dir + hash + "/"
+        run.path = out_dir + hash + "/run.sh"
         simulation_runs[hash] = run
     Logger.info("Generated %s simulation configs." % (len(simulation_runs)))
     return simulation_runs
 
-def write_sim_data(omnet_exec, inet_dir, folder_path, lines, hash, additional_files):
+def write_sim_data(omnet_exec, inet_dir, folder_path, lines, hash, additional_files, target_file):
 
     full_folder_path = check_and_create_folder(folder_path, hash)
     write_ini(full_folder_path, lines)
-    create_bash_script(full_folder_path, omnet_exec, inet_dir)
+    create_bash_script(full_folder_path, omnet_exec, inet_dir, target_file)
     write_additional_files(full_folder_path, additional_files)
 
 def create_file_hash(lines):
@@ -92,7 +93,7 @@ def check_and_create_file(full_path):
     f = open (full_path, "a")
     return f
 
-def create_bash_script(target_folder, omnet_exec, inet_dir):
+def create_bash_script(target_folder, omnet_exec, inet_dir, target_file):
     script = """
     #!/bin/bash
     DIR=%s
@@ -105,7 +106,7 @@ def create_bash_script(target_folder, omnet_exec, inet_dir):
         exit $rc
     fi
     """ % (inet_dir[:-1], target_folder, omnet_exec)
-    full_path = target_folder + "/run.sh"
+    full_path = target_folder + target_file
     if os.path.exists(full_path):
         os.remove(full_path)
     f = open (full_path, "a")

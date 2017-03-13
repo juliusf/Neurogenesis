@@ -20,7 +20,7 @@ def main():
     arg_parser.add_argument("--omnetdir", help="location of the omnet executable on NFS share")
     arg_parser.add_argument("--additionalFiles", nargs="+", help="additional Files which should be copied to the output dirs")
     arg_parser.add_argument("--nrRanks", help="Nr of ranks the simulation should be distributed to")
-    arg_parser.add_argument("--distributionBinary", help="location of the MPI distribution binary")
+    arg_parser.add_argument("--mpiWorker", help="location of the MPI worker script")
     arg_parser.add_argument("--hostfile", help = "location of the host file")
     arg_parser.add_argument("--extractScalarsFile", help= "List of scalars to be extracted")
     arg_parser.add_argument("--extractVectorsFile", help= "List of vectors to be extracted")
@@ -35,7 +35,7 @@ def main():
     if args.command == "simulate":
         Logger.info("Creating simulation configs...")
         simulations = write_sim_config(args)
-        run_simulation(args, simulations)
+        simulations = run_simulation(args, simulations)
         Logger.info("Saving simulation Metadata")
         serialize_sim_data(args.metaFile, simulations)
         send_notification(args)
@@ -51,7 +51,8 @@ def main():
 
 def run_simulation(args, simulations):
         Logger.info("Starting distributed Simulation with %i ranks" % args.nrRanks)
-        runner.run_simulation(args.distributionBinary, args.hostfile, args.nrRanks, simulations)
+        return runner.run_simulation(args.mpiWorker, args.hostfile, args.nrRanks, simulations)
+
 
 
 def extract_scalars(args):
@@ -97,8 +98,8 @@ def send_notification(args):
     pushover_secret_file.close()
 
 def write_default_parameters(args):
-    if args.distributionBinary is None:
-        args.distributionBinary = "/mnt/distsim/simtools/distribute/distribute"
+    if args.mpiWorker is None:
+        args.mpiWorker = "/mnt/distsim/simtools/mpiworker"
 
     if args.hostfile  is None:
         args.hostfile = "/mnt/distsim/simtools/hostfile"
@@ -143,7 +144,7 @@ def write_default_parameters(args):
         args.plotScript = "plot.py"
 
     if args.notificationKeyFile is None:
-    	args.notificationKeyFile = "pushover_secret"
+        args.notificationKeyFile = "pushover_secret"
     return args
 
 if __name__ == '__main__':

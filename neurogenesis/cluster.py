@@ -7,6 +7,7 @@ class TaskQueue():
         self.num_tasks = len(simulations.values())
         self.tasks = simulations.values()
         self.next_sim = 0
+        self.completed_tasks = {}
 
     def has_next(self):
         return self.next_sim < self.num_tasks
@@ -18,6 +19,13 @@ class TaskQueue():
 
     def get_job_nr(self):
         return self.next_sim
+
+    def set_task_complete(self, task):
+        key = task.hash
+        self.completed_tasks[key] = task
+
+    def get_completed_tasks(self):
+        return self.completed_tasks
 
 class MPITags:
     DIE = 1
@@ -45,20 +53,21 @@ class Cluster():
         print("starting to reschedule")
         while (queue.has_next()):
             reception_status = MPI.Status()
-            exit_code = self.comm.recv(source=MPI.ANY_SOURCE, tag=MPITags.FEEDBACK, status=reception_status)
-            Logger.info("Received exit code %s from rank %s" % (exit_code, reception_status.source))
-
+            completed_task = self.comm.recv(source=MPI.ANY_SOURCE, tag=MPITags.FEEDBACK, status=reception_status)
+            Logger.info("Received exit code %s from rank %s" % (completed_task.last_exit_code, reception_status.source))
+            queue.set_task_complete(completed_task)
             task = queue.get_next()
             Logger.info(" %s/%s: sent job %s to rank %s" % (
             queue.get_job_nr(), queue.num_tasks, task.hash, reception_status.source))
             self.comm.send(task, dest=reception_status.source, tag=MPITags.WORK)
 
-    def synchronize(self):
+    def synchronize(self, queue):
         while len(self.active_ranks) > 0:
             reception_status = MPI.Status()
-            exit_code = self.comm.recv(source=MPI.ANY_SOURCE, tag=MPITags.FEEDBACK, status=reception_status)
+            completed_task = self.comm.recv(source=MPI.ANY_SOURCE, tag=MPITags.FEEDBACK, status=reception_status)
+            queue.set_task_complete(completed_task)
             self.active_ranks.remove(reception_status.source)
-            Logger.info("Received exit code %s from rank %s" % (exit_code, reception_status.source))
+            Logger.info("Received exit code %s from rank %s" % (completed_task.last_exit_code, reception_status.source))
 
     def kill_workers(self):
         for i in range(1, self.nr_ranks):
