@@ -107,7 +107,7 @@ def create_bash_script(target_folder, omnet_exec, inet_dir, target_file):
         exit $rc
     fi
     """ % (inet_dir[:-1], target_folder, omnet_exec)
-    full_path = target_folder + target_file
+    full_path = target_folder + "/" + target_file
     if os.path.exists(full_path):
         os.remove(full_path)
     f = open (full_path, "a")

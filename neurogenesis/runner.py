@@ -26,11 +26,10 @@ def run_simulation(path_to_execute_binary, path_to_hosts_file, nr_ranks, simulat
     cluster.kill_workers()
     duration = datetime.datetime.now() - start_time
     Logger.printColor(PrintColors.OKGREEN, "simulation successful. Duration: %s" % (duration))
-    Logger.warning("number of tasks simulated: %s" % (len(queue.get_completed_tasks().keys())))
 
     simulation_run = queue.get_completed_tasks()
 
-    for sim in simulation_run:
+    for sim in simulation_run.values():
         sim.last_run_at = start_time
     return simulation_run
 
@@ -45,4 +44,4 @@ def write_list_of_sims(file, simulations):
         f.write(hash + "\n")
     f.close()
     Logger.info("Passed %s simulations to MPI runner." % (len(simulations.keys())))
-    
+

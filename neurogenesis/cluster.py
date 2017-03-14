@@ -63,10 +63,11 @@ class Cluster():
     def synchronize(self, queue):
         while len(self.active_ranks) > 0:
             reception_status = MPI.Status()
+            Logger.info("Waiting for active ranks to finish. Remaining active ranks: %s" % (len(self.active_ranks)))
             completed_task = self.comm.recv(source=MPI.ANY_SOURCE, tag=MPITags.FEEDBACK, status=reception_status)
             queue.set_task_complete(completed_task)
             self.active_ranks.remove(reception_status.source)
-            Logger.info("Received exit code %s from rank %s" % (completed_task.last_exit_code, reception_status.source))
+            Logger.info("Received exit code %s from rank %s." % (completed_task.last_exit_code, reception_status.source))
 
     def kill_workers(self):
         for i in range(1, self.nr_ranks):
