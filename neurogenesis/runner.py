@@ -28,7 +28,11 @@ def run_simulation(path_to_execute_binary, path_to_hosts_file, nr_ranks, simulat
     Logger.printColor(PrintColors.OKGREEN, "simulation successful. Duration: %s" % (duration))
     Logger.warning("number of tasks simulated: %s" % (len(queue.get_completed_tasks().keys())))
 
-    return queue.get_completed_tasks()
+    simulation_run = queue.get_completed_tasks()
+
+    for sim in simulation_run:
+        sim.last_run_at = start_time
+    return simulation_run
 
 
 def write_list_of_sims(file, simulations):

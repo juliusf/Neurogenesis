@@ -50,7 +50,6 @@ class Cluster():
                 self.active_ranks.append(i)
 
     def wait_and_reschedule(self, queue):
-        print("starting to reschedule")
         while (queue.has_next()):
             reception_status = MPI.Status()
             completed_task = self.comm.recv(source=MPI.ANY_SOURCE, tag=MPITags.FEEDBACK, status=reception_status)
