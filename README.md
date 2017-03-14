@@ -67,7 +67,7 @@ Neurogenesis simulation projects typically share the following directory structu
   
   * `meta.pickle` is an auto-generated serialized python object which stores meta information and also simulation results needed for later processing.
   
-  * `pushover_secret` (optional) contains pushover[https://pushover.net/] user API-keys you can use to send notifications
+  * `pushover_secret` (optional) contains pushover[1]  user API-keys you can use to send notifications
   to you desktop / mobile client when you want to be notified when a simulation has finished.
   
   
@@ -151,3 +151,6 @@ Therefore the parameter corresponding to the y-axis is a list.
 
 
 If you have any further questions, please do not hesitate to contact me.
+
+
+[1] https://pushover.net/
