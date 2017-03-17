@@ -18,6 +18,11 @@ class SimulationRun():
         self.last_executed_on_rank = -1
         self.last_run_at = 0
 
+class Simulation():
+        def __init__(self):
+            self.simulation_runs = {}
+            self.name = ""
+            self.last_executed = ""
 
 def serialize_sim_data(simName, simulations):
     file = open(simName, "wb+")

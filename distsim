@@ -4,11 +4,12 @@ import argparse
 import sys
 import httplib, urllib
 import shutil
+import datetime
 from neurogenesis import demux
 from neurogenesis import runner
 from neurogenesis import extractor
 from neurogenesis.util import Logger
-from neurogenesis.base import serialize_sim_data, deserialize_sim_data
+from neurogenesis.base import serialize_sim_data, deserialize_sim_data, Simulation
 from neurogenesis.plotter import plot_simulations
 
 def main():
@@ -28,6 +29,7 @@ def main():
     arg_parser.add_argument("--plotScript", help="location of the plot script")
     arg_parser.add_argument("--notificationKeyFile", help="location of the pushover keyfile")
     arg_parser.add_argument("--ignore", help="Token is ignored")
+    arg_parser.add_argument("--name", help="name that is used to identify the simulation run later")
 
     args = arg_parser.parse_args()
     args = write_default_parameters(args)
@@ -36,21 +38,31 @@ def main():
         Logger.info("trying to purge old simulation data...")
         clean_old_configs(args)
         Logger.info("Creating simulation configs...")
+        sim = Simulation()
+        sim.last_executed = datetime.datetime.now()
+
+        if args.simName is not None:
+            sim.name = args.simName
+
         simulations = write_sim_config(args)
         simulations = run_simulation(args, simulations)
         Logger.info("Saving simulation Metadata")
+
         serialize_sim_data(args.metaFile, simulations)
         send_notification(args)
     elif args.command == "extract":
         Logger.info("Extracting Scalars")
-        updated_simulations = extract_scalars(args)
+        updated_simulations = extract(args)
         Logger.info("done. Writing results back to metafile")
         serialize_sim_data(args.metaFile, updated_simulations)
+
     elif args.command == "plot":
         plot_simfile(args)
+
     elif args.command == "clean":
         Logger.info("trying to purge old simulation data...")
         clean_old_configs(args)
+
     else:
         Logger.error("Invlaid command: %s" % str(args.command))
 
@@ -60,8 +72,9 @@ def run_simulation(args, simulations):
 
 
 
-def extract_scalars(args):
-    simulations = deserialize_sim_data(args.metaFile)
+def extract(args):
+    simulation = deserialize_sim_data(args.metaFile)
+    simulations = simulation.simulation_runs
     try:
         simulations = extractor.extract(args.extractScalarsFile, simulations)
     except IOError as e:
@@ -75,7 +88,7 @@ def extract_scalars(args):
 
 def plot_simfile(args):
     simulations = deserialize_sim_data(args.metaFile)
-    plot_simulations(simulations,args.plotScript)
+    plot_simulations(simulations, args.plotScript)
 
 def write_sim_config(args):
     if args.inifile is None:
