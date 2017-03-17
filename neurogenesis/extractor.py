@@ -1,5 +1,6 @@
 import re
 import sys
+import os.path
 from neurogenesis.util import Logger
 
 
@@ -10,7 +11,11 @@ def extract(scalars_file, simulations):
     scalars_file.close()
     for simulation in simulations.values():
         try:
-            with open(simulation.path + "results/General-0.sca") as result_file:
+            omnet50_path = simulation.path + "results/General-0.sca"
+            omnet51_path = simulation.path + "results/General-#0.sca"
+            path = omnet51_path if os.path.exists(omnet51_path) else omnet50_path
+
+            with open(path) as result_file:
                 for line in result_file:
                     if line.startswith("scalar"):
                         for scalar in scalars:
@@ -51,7 +56,11 @@ def extract_vectors(vector_file, simulations):
     encountered_filters = {}
     for simulation in simulations.values():
         try:
-            with open(simulation.path + "results/General-0.vec") as result_vector:
+            omnet50_path = simulation.path + "results/General-0.vec"
+            omnet51_path = simulation.path + "results/General-#0.vec"
+
+            path = omnet51_path if os.path.exists(omnet51_path) else omnet50_path
+            with open(path) as result_vector: # valid til omnet5.0
                 values = {}
                 values_names = {}
                 for line in result_vector:
