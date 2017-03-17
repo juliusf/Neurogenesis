@@ -3,7 +3,7 @@
 import argparse
 import sys
 import httplib, urllib
-import datetime
+import shutil
 from neurogenesis import demux
 from neurogenesis import runner
 from neurogenesis import extractor
@@ -33,6 +33,8 @@ def main():
     args = write_default_parameters(args)
 
     if args.command == "simulate":
+        Logger.info("trying to purge old simulation data...")
+        clean_old_configs(args)
         Logger.info("Creating simulation configs...")
         simulations = write_sim_config(args)
         simulations = run_simulation(args, simulations)
@@ -78,6 +80,17 @@ def write_sim_config(args):
         sys.exit(-127)
     simulations = demux.demux_and_write_simulation(args.inifile, args.outdir, args.inetdir, args.additionalFiles, args.omnetdir)
     return simulations
+
+def clean_old_configs(args):
+    try:
+        simulations = deserialize_sim_data(args.metaFile)
+    except IOError as e:
+        Logger.info("no previous simulations found")
+        return
+
+    Logger.info("purging old simulation data")
+    for simulation in simulations.values():
+        shutil.rmtree(simulation.path)
 
 def send_notification(args):
     try:
