@@ -13,7 +13,7 @@ from neurogenesis.plotter import plot_simulations
 
 def main():
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument("command", help="command to be executed. Possible values are: simulate, extract, plot")
+    arg_parser.add_argument("command", help="command to be executed. Possible values are: simulate, extract, plot, clean")
     arg_parser.add_argument("--inifile", help="specifies the location of the ini file to be executed.")
     arg_parser.add_argument("--outdir", help="specifies the location where files should be written to.")
     arg_parser.add_argument("--inetdir", help='location of the inet executable on NFS share')
@@ -48,6 +48,9 @@ def main():
         serialize_sim_data(args.metaFile, updated_simulations)
     elif args.command == "plot":
         plot_simfile(args)
+    elif args.command == "clean":
+        Logger.info("trying to purge old simulation data...")
+        clean_old_configs(args)
     else:
         Logger.error("Invlaid command: %s" % str(args.command))
 
