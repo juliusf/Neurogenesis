@@ -1,7 +1,7 @@
 import cPickle as pickle
-
 import gc
-
+import sys
+from neurogenesis.util import Logger
 
 class SimulationRun():
     def __init__(self):
@@ -38,4 +38,7 @@ def deserialize_sim_data(path):
     sim_data = pickle.load(file)
     gc.enable()
     file.close()
+    if isinstance(sim_data, dict):
+        Logger.error("It seems that your .meta.pickle file has been created with an old version of distsim. Please rerun your simulation!")
+        sys.exit(-1)
     return sim_data
