@@ -20,10 +20,20 @@ class DynamicLine(): # TODO better name?
     def __repr__(self):
         return self.__str__()
 
-def demux_and_write_simulation(ini_file, out_dir, inet_dir, additional_files, omnet_exec):
+def demux_and_write_simulation(args):
+    ini_file = args.inifile
+    out_dir = args.outdir
+    inet_dir = args.inetdir
+    additional_files = args.additionalFiles
+    omnet_exec = args.omnetdir
+    config = args.configName
+
     lines = []
     dynamic_lines = []
     simulation_runs = {}
+
+    config_line = "# This is config %s\n" % (config)
+    lines.append(config_line)
     with open(ini_file) as input_file:
         for row in input_file:
             if '{' in row.split('#')[0]: # ignore comments (T)
@@ -46,6 +56,7 @@ def demux_and_write_simulation(ini_file, out_dir, inet_dir, additional_files, om
         [run.config.append(line.get_current_value_tuple()) for line in dynamic_lines]
         run.path = out_dir + hash + "/"
         run.executable_path = out_dir + hash + "/" + target_file
+        run.config_name= config
         simulation_runs[hash] = run
     Logger.info("Generated %s simulation configs." % (len(simulation_runs)))
     return simulation_runs
@@ -94,19 +105,25 @@ def check_and_create_file(full_path):
     f = open (full_path, "a")
     return f
 
-def create_bash_script(target_folder, omnet_exec, inet_dir, target_file):
+def create_bash_script(args, target_folder, target_file):
+
+    omnet_exec = args.omnetdir
+    inet_dir = args.inetdir
+    config_name = args.configName
+
     script = """
     #!/bin/bash
     DIR=%s
     TARGET=%s
+    CONFIG=%s
     cd $DIR
-    %s -G -u Cmdenv -l $DIR/INET -n  $DIR/inet:$DIR/../tutorials:$DIR/../examples:$DIR/../examples:$TARGET/ $TARGET/omnetpp.ini > /dev/null
+    %s -G -u Cmdenv -l $DIR/INET -n -c $CONFIG $DIR/inet:$DIR/../tutorials:$DIR/../examples:$DIR/../examples:$TARGET/ $TARGET/omnetpp.ini > /dev/null
     rc=$?
     if [ $rc -gt 0 ]; then
         echo There is something wrong! omnet exited with non 0 exit code!
         exit $rc
     fi
-    """ % (inet_dir[:-1], target_folder, omnet_exec)
+    """ % (inet_dir[:-1], target_folder, omnet_exec, config_name)
     full_path = target_folder + "/" + target_file
     if os.path.exists(full_path):
         os.remove(full_path)
