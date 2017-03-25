@@ -23,9 +23,6 @@ class DynamicLine(): # TODO better name?
 def demux_and_write_simulation(args):
     ini_file = args.inifile
     out_dir = args.outdir
-    inet_dir = args.inetdir
-    additional_files = args.additionalFiles
-    omnet_exec = args.omnetdir
     config = args.configName
 
     lines = []
@@ -51,7 +48,7 @@ def demux_and_write_simulation(args):
             run.parameters.append((dynamic_lines[idx].head_part.split()[0], val.strip()))
         hash = create_file_hash(lines)
         target_file = "run.sh"
-        write_sim_data(omnet_exec, inet_dir, out_dir, lines, hash, additional_files, target_file)
+        write_sim_data(args, lines, hash, target_file)
         run.hash = hash
         [run.config.append(line.get_current_value_tuple()) for line in dynamic_lines]
         run.path = out_dir + hash + "/"
@@ -61,9 +58,9 @@ def demux_and_write_simulation(args):
     Logger.info("Generated %s simulation configs." % (len(simulation_runs)))
     return simulation_runs
 
-def write_sim_data(args, folder_path, lines, hash, target_file):
+def write_sim_data(args, lines, hash, target_file):
 
-    full_folder_path = check_and_create_folder(folder_path, hash)
+    full_folder_path = check_and_create_folder(args.outdir, hash)
     write_ini(full_folder_path, lines)
     create_bash_script(args, full_folder_path,target_file)
     write_additional_files(args, full_folder_path)
