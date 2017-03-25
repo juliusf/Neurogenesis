@@ -61,19 +61,20 @@ def demux_and_write_simulation(args):
     Logger.info("Generated %s simulation configs." % (len(simulation_runs)))
     return simulation_runs
 
-def write_sim_data(omnet_exec, inet_dir, folder_path, lines, hash, additional_files, target_file):
+def write_sim_data(args, folder_path, lines, hash, target_file):
 
     full_folder_path = check_and_create_folder(folder_path, hash)
     write_ini(full_folder_path, lines)
-    create_bash_script(full_folder_path, omnet_exec, inet_dir, target_file)
-    write_additional_files(full_folder_path, additional_files)
+    create_bash_script(args, full_folder_path,target_file)
+    write_additional_files(args, full_folder_path)
 
 def create_file_hash(lines):
     hash = hashlib.md5()
     [hash.update(str(line).encode('utf-8')) for line in lines]
     return hash.hexdigest()
 
-def write_additional_files(folder_path, files):
+def write_additional_files(args, folder_path):
+    files = args.additionalFiles
     for file in files:
         base_name = os.path.basename(file)
         new_file_path = folder_path + '/'+ base_name
