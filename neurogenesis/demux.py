@@ -121,7 +121,7 @@ def create_bash_script(args, target_folder, target_file):
         echo There is something wrong! omnet exited with non 0 exit code!
         exit $rc
     fi
-    """ % (inet_dir[:-1], target_folder, omnet_exec, config_name)
+    """ % (inet_dir[:-1], target_folder, config_name, omnet_exec)
     full_path = target_folder + "/" + target_file
     if os.path.exists(full_path):
         os.remove(full_path)
