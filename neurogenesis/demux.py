@@ -134,8 +134,35 @@ def create_bash_script(args, target_folder, target_file):
 def create_dynamic_line(line):
     dline = DynamicLine()
     head_tokens  = line.split('{')
-    dline.head_part = head_tokens[0]
-    tail_tokens = head_tokens[1].split('}')
-    dline.dynamic_part = tail_tokens[0].split(',')
-    dline.tail_part = tail_tokens[1]
+    if head_tokens[0][-1] == "$":
+        dline.head_part = head_tokens[0] + '{'
+        tail_tokens = head_tokens[1].split('}')
+
+        if( '=' in head_tokens[1]): #assignment
+            assignemt = head_tokens[1].split('=')
+            dline.head_part += assignemt[0] + " = "# puts the variable name at the beginning
+            dynamic_parts = assignemt[1].split(",")
+            dynamic_parts[-1] = dynamic_parts[-1].split('}')[0]
+            dline.dynamic_part = dynamic_parts
+            dline.tail_part = '}' + tail_tokens[1]
+        else:
+            dline.head_part = line
+            dline.dynamic_part = []
+            dline.tail_part = ""
+    else: #legacy config syntax
+        dline.head_part = head_tokens[0]
+        tail_tokens = head_tokens[1].split('}')
+        dline.dynamic_part = tail_tokens[0].split(',')
+        dline.tail_part = tail_tokens[1]
     return dline
+
+def parse_tokens(tokens):
+    more_tokens = []
+    for token in tokens:
+        if "=" in token: # assignment
+            assignment_tokens = token.split("=")
+            more_tokens.append(Token(0, TokenTypes.SYMBOL), )
+
+def dynamic_line_range(line):
+    #has '..', optional step parameter
+    pass
