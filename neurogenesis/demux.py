@@ -40,7 +40,7 @@ def demux_and_write_simulation(args):
             else:
                 lines.append(row)
 
-    all_dynamic_lines = [line.dynamic_part for line in dynamic_lines]
+    all_dynamic_lines = [ line.dynamic_part for line in dynamic_lines if len(line.dynamic_part) > 0]
     for perm in itertools.product(*all_dynamic_lines):
         run = SimulationRun()
         for idx, val in enumerate(perm):
