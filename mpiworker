@@ -16,6 +16,7 @@ def main():
         # execute task
         if reception_status.Get_tag() == MPITags.WORK:
             task.last_exit_code = call(task.executable_path, shell=True)
+            task.last_executed_on_rank = comm.Get_rank()
             comm.send(task, Cluster.MASTER_CONTROLLER, MPITags.FEEDBACK)
         elif reception_status.Get_tag() == MPITags.DIE:
             Logger.debug("rank %s exiting" %  (comm.Get_rank()))

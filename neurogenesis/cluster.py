@@ -54,6 +54,7 @@ class Cluster():
             reception_status = MPI.Status()
             completed_task = self.comm.recv(source=MPI.ANY_SOURCE, tag=MPITags.FEEDBACK, status=reception_status)
             Logger.info("Received exit code %s from rank %s" % (completed_task.last_exit_code, reception_status.source))
+            self.check_exit_code(completed_task)
             queue.set_task_complete(completed_task)
             task = queue.get_next()
             Logger.info(" %s/%s: sent job %s to rank %s" % (
@@ -68,8 +69,12 @@ class Cluster():
             queue.set_task_complete(completed_task)
             self.active_ranks.remove(reception_status.source)
             Logger.info("Received exit code %s from rank %s." % (completed_task.last_exit_code, reception_status.source))
+            self.check_exit_code(completed_task)
 
     def kill_workers(self):
         for i in range(1, self.nr_ranks):
             self.comm.send(0, dest=i, tag=MPITags.DIE)
 
+    def check_exit_code(self, run):
+        if run.last_exit_code != 0:
+            Logger.warning("Task %s on node %s exited with non zero exit code!" % (run.hash, run.last_executed_on_rank))
