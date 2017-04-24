@@ -7,6 +7,7 @@ import os
 def run_simulation(path_to_execute_binary, path_to_hosts_file, nr_ranks, simulations):
     from mpi4py import MPI
     from neurogenesis.cluster import Cluster, TaskQueue
+
     start_time = datetime.datetime.now()
     mpi_info = MPI.Info.Create()
     #mpi_info.Set("hostfile", path_to_hosts_file)

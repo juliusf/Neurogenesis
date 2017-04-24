@@ -17,6 +17,7 @@ class SimulationRun():
         self.last_exit_code = -1
         self.last_executed_on_rank = -1
         self.last_run_at = 0
+        self.config_name = ""
 
 class Simulation():
         def __init__(self):

@@ -30,7 +30,7 @@ def main():
     arg_parser.add_argument("--notificationKeyFile", help="location of the pushover keyfile")
     arg_parser.add_argument("--ignore", help="Token is ignored")
     arg_parser.add_argument("--name", help="name that is used to identify the simulation run later")
-
+    arg_parser.add_argument("--configName", help="name of the config in ini to execute")
     args = arg_parser.parse_args()
     args = write_default_parameters(args)
 
@@ -96,7 +96,7 @@ def write_sim_config(args):
     if args.inifile is None:
         Logger.error("No ini File specified!")
         sys.exit(-127)
-    simulations = demux.demux_and_write_simulation(args.inifile, args.outdir, args.inetdir, args.additionalFiles, args.omnetdir)
+    simulations = demux.demux_and_write_simulation(args)
     return simulations
 
 def clean_old_configs(args):
@@ -176,6 +176,9 @@ def write_default_parameters(args):
 
     if args.notificationKeyFile is None:
         args.notificationKeyFile = "pushover_secret"
+
+    if args.configName is None:
+        args.configName = "General"
     return args
 
 if __name__ == '__main__':
