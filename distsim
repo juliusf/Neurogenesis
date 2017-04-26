@@ -45,7 +45,7 @@ def main():
             sim.name = args.name
 
         sim.simulation_runs = write_sim_config(args)
-        sim.simulation_runs = run_simulation(args, sim)
+        sim = run_simulation(args, sim)
         Logger.info("Saving simulation Metadata")
         serialize_sim_data(args.metaFile, sim)
         send_notification(args, sim)
@@ -109,7 +109,7 @@ def clean_old_configs(args):
     for simulation in simulations.simulation_runs.values():
         shutil.rmtree(simulation.path, ignore_errors=True)
 
-def send_notification(args, runs):
+def send_notification(args, sim):
     try:
         pushover_secret_file = open(args.notificationKeyFile, "r")
     except IOError:
@@ -121,7 +121,7 @@ def send_notification(args, runs):
     urllib.urlencode({
     "token": "ae1u9qxnk2obfgiodr19rrbo2bsazs",
     "user": secret,
-    "message": "simulation %s (%s) finished. \n duration: %s \n non-zero exits: %s \n ran on %s ranks" % (runs.name, args.inifile, runs.total_duration, runs.total_non_zero_exit_codes, args.nrRanks),
+    "message": "simulation %s (%s) finished. \n duration: %s \n non-zero exits: %s \n ran on %s ranks" % (sim.name, args.inifile, sim.total_duration, sim.total_non_zero_exit_codes, args.nrRanks),
   }), { "Content-type": "application/x-www-form-urlencoded" })
     conn.getresponse()
 
