@@ -45,7 +45,8 @@ def demux_and_write_simulation(args):
         run = SimulationRun()
         for idx, val in enumerate(perm):
             dynamic_lines[idx].current_print_representation = val
-            run.parameters.append((dynamic_lines[idx].head_part.split()[0], val.strip()))
+            #run.parameters.append((dynamic_lines[idx].head_part.split()[0], val.strip()))
+            run.parameters[dynamic_lines[idx].head_part.split()[0]] = val.strip()
         hash = create_file_hash(lines)
         target_file = "run.sh"
         write_sim_data(args, lines, hash, target_file)
@@ -59,7 +60,6 @@ def demux_and_write_simulation(args):
     return simulation_runs
 
 def write_sim_data(args, lines, hash, target_file):
-
     full_folder_path = check_and_create_folder(args.outdir, hash)
     write_ini(full_folder_path, lines)
     create_bash_script(args, full_folder_path,target_file)
