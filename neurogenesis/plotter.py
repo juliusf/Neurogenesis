@@ -14,16 +14,14 @@ class SimulationConfig():
 def check_filter(sim, filter_list):
     for filter in filter_list:
         try:
-            if not sim.results[filter[0]] == filter[1]:
+            if not sim.parameters[filter[0]] == filter[1]:
                return False
         except KeyError:
-            Logger.error("The dataset does not contain filter value: %s" % (filter[0]))
-            exit(-15)
+            Logger.warning("The dataset does not contain filter value: %s" % (filter[0]))
+            pass
     return True
 
 def load_plot_config(path):
-
-
     for line in config_file:
         if line.lstrip()[0] is "#": #comment
             continue
