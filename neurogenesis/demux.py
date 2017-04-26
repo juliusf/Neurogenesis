@@ -118,7 +118,6 @@ def create_bash_script(args, target_folder, target_file):
     %s -u Cmdenv -l $DIR/INET -c $CONFIG -n $DIR/inet:$DIR/../tutorials:$DIR/../examples:$DIR/../examples:$TARGET/ $TARGET/omnetpp.ini > /dev/null
     rc=$?
     if [ $rc -gt 0 ]; then
-        echo There is something wrong! omnet exited with non 0 exit code!
         exit $rc
     fi
     """ % (inet_dir[:-1], target_folder, config_name, omnet_exec)
