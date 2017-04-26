@@ -49,7 +49,7 @@ def main():
         Logger.info("Saving simulation Metadata")
         sim.simulation_runs = runs
         serialize_sim_data(args.metaFile, sim)
-        send_notification(args)
+        send_notification(args, runs)
 
     elif args.command == "extract":
         Logger.info("Extracting Scalars")
@@ -110,7 +110,7 @@ def clean_old_configs(args):
     for simulation in simulations.simulation_runs.values():
         shutil.rmtree(simulation.path, ignore_errors=True)
 
-def send_notification(args):
+def send_notification(args, runs):
     try:
         pushover_secret_file = open(args.notificationKeyFile, "r")
     except IOError:
@@ -122,7 +122,7 @@ def send_notification(args):
     urllib.urlencode({
     "token": "ae1u9qxnk2obfgiodr19rrbo2bsazs",
     "user": secret,
-    "message": "simulation of file %s with %s ranks finished!" % (args.inifile, args.nrRanks),
+    "message": "simulation %s (%s) finished. \n duration: %s \n non-zero exits: %s \n ran on %s ranks" % (runs.name, args.inifile, runs.total_duration, runs.total_non_zero_exit_codes, args.nrRanks),
   }), { "Content-type": "application/x-www-form-urlencoded" })
     conn.getresponse()
 

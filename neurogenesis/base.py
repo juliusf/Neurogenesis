@@ -24,6 +24,8 @@ class Simulation():
             self.simulation_runs = {}
             self.name = ""
             self.last_executed = ""
+            self.total_duration = -1
+            self.total_non_zero_exit_codes = -1
 
 def serialize_sim_data(simName, simulations):
     file = open(simName, "wb+")
