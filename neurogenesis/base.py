@@ -12,7 +12,7 @@ class SimulationRun():
         self.executable_path = ""
         self.results = {}
         self.result_vectors = {}  # {('module', 'name'): [(event, simSec, value), ...], ...}
-        self.parameters = []
+        self.parameters = {}
         self.execute_binary = ""
         self.last_exit_code = -1
         self.last_executed_on_rank = -1
