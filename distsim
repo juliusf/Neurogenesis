@@ -44,12 +44,11 @@ def main():
         if args.name is not None:
             sim.name = args.name
 
-        runs = write_sim_config(args)
-        runs = run_simulation(args, runs)
+        sim.simulation_runs = write_sim_config(args)
+        sim.simulation_runs = run_simulation(args, sim)
         Logger.info("Saving simulation Metadata")
-        sim.simulation_runs = runs
         serialize_sim_data(args.metaFile, sim)
-        send_notification(args, runs)
+        send_notification(args, sim)
 
     elif args.command == "extract":
         Logger.info("Extracting Scalars")

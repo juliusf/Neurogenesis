@@ -4,7 +4,7 @@ import sys
 import datetime
 import os
 
-def run_simulation(path_to_execute_binary, path_to_hosts_file, nr_ranks, simulations):
+def run_simulation(path_to_execute_binary, path_to_hosts_file, nr_ranks, sim):
     from mpi4py import MPI
     from neurogenesis.cluster import Cluster, TaskQueue
 
@@ -18,7 +18,7 @@ def run_simulation(path_to_execute_binary, path_to_hosts_file, nr_ranks, simulat
                                info=mpi_info).Merge()
 
     comm.Barrier()
-    queue = TaskQueue(simulations)
+    queue = TaskQueue(sim.simulation_runs)
     cluster = Cluster(comm)
     cluster.schedule(queue)
     cluster.wait_and_reschedule(queue)
@@ -27,18 +27,18 @@ def run_simulation(path_to_execute_binary, path_to_hosts_file, nr_ranks, simulat
     duration = datetime.datetime.now() - start_time
     Logger.printColor(PrintColors.OKGREEN, "simulation successful. Duration: %s" % (duration))
 
-    simulation_run = queue.get_completed_tasks()
+    sim.simulation_run = queue.get_completed_tasks()
 
     non_zero_exit_codes = 0
-    for sim in simulation_run.values():
+    for sim in sim.simulation_run.values():
         sim.last_run_at = start_time
         if sim.last_exit_code != 0:
             non_zero_exit_codes += 1
 
-    simulation_run.total_duration = duration
-    simulation_run.total_non_zero_exit_codes = non_zero_exit_codes
+    sim.total_duration = duration
+    sim.total_non_zero_exit_codes = non_zero_exit_codes
 
-    return simulation_run
+    return sim
 
 
 def write_list_of_sims(file, simulations):
