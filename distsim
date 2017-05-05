@@ -66,9 +66,9 @@ def main():
     else:
         Logger.error("Invlaid command: %s" % str(args.command))
 
-def run_simulation(args, simulations):
+def run_simulation(args, sim):
         Logger.info("Starting distributed Simulation with %i ranks" % args.nrRanks)
-        return runner.run_simulation(args.mpiWorker, args.hostfile, args.nrRanks, simulations)
+        return runner.run_simulation(args.mpiWorker, args.hostfile, args.nrRanks, sim)
 
 
 

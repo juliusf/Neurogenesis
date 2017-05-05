@@ -30,9 +30,9 @@ def run_simulation(path_to_execute_binary, path_to_hosts_file, nr_ranks, sim):
     sim.simulation_run = queue.get_completed_tasks()
 
     non_zero_exit_codes = 0
-    for sim in sim.simulation_run.values():
-        sim.last_run_at = start_time
-        if sim.last_exit_code != 0:
+    for sim_run in sim.simulation_run.values():
+        sim_run.last_run_at = start_time
+        if sim_run.last_exit_code != 0:
             non_zero_exit_codes += 1
 
     sim.total_duration = duration
