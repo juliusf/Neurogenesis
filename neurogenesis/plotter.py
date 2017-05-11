@@ -69,7 +69,7 @@ def generate_plot(simulation, plot_description, pdf):
     dimensions = plot_description['dimensions']
     config_map = {}
     all_filter_values = []
-    
+
     for filter_values in dimensions:
         all_filter_values.append(filter_values[1])
         config_map[filter_values[0]] = filter_values[1]
@@ -79,11 +79,11 @@ def generate_plot(simulation, plot_description, pdf):
         for idx, dim in enumerate(perm):
             filter.append((dimensions[idx][0], dim))
         plot_configs.append(filter)
-    
+
     plot_groups = plot_description['group-by'][:]
     plot_groups.insert(0, plot_description['line'])
     plot_groups.insert(0, plot_description['color'])
-    
+
     for group in plot_groups:
         def getKey(plotConfig):
             for entry in plotConfig:
@@ -91,7 +91,7 @@ def generate_plot(simulation, plot_description, pdf):
                     return entry[1]
             Logger.warning("couldn't find group-key %s" % (group))
         plot_configs = sorted(plot_configs, key= getKey)
-    
+
 
     line_parameter = plot_description['line']
     col_parameter = plot_description['color']
@@ -102,7 +102,7 @@ def generate_plot(simulation, plot_description, pdf):
     line_mode = False
     ax = None
     box = None
-    
+
     for idx, filter in enumerate(plot_configs):
         current_config = dict(filter)
 
@@ -110,13 +110,13 @@ def generate_plot(simulation, plot_description, pdf):
         if len(datapoints) == 0:
             Logger.error("Error in plot config! Simdata does not contain filter: %s" % (filter))
             exit(-1)
-        
+
         if idx > 0 and idx % (nr_line_parameters * nr_col_parameters) == 0:
             # save old stuff
             generate_legend(ax, len(datapoints[0][1]), plot_description)
             plt.savefig(pdf, format='pdf')
-            
-           
+            plt.close()
+
 
         if idx % (nr_line_parameters * nr_col_parameters) == 0:
             fig = plt.figure()
@@ -126,21 +126,20 @@ def generate_plot(simulation, plot_description, pdf):
             box = ax.get_position()
             ax.set_position([box.x0, box.y0 + box.height * 0.3 , box.width, box.height * 0.7])
 
-      
+
         x_s = [dat[0] for dat in datapoints]
         y_s = [np.mean(dat[1]) for dat in datapoints]
         y_err = [stats.sem(dat[1]) for dat in datapoints]
         if idx % nr_col_parameters == 0:
             line_mode = not line_mode
-            plt.gca().set_color_cycle(None)
-        
+            plt.gca().set_prop_cycle(None) #resets colorcycle
+
         label = "%s | %s" % (current_config[line_parameter], current_config[col_parameter])
         if line_mode:
             ax.errorbar(x_s, y_s, yerr=y_err, label=label , marker="o", lw=3)
-            #print("plotting dot: %s" %(idx))
         else:
             ax.errorbar(x_s, y_s, yerr=y_err, label=label , fmt="-.", lw=3)
-            #print("plotting dash: %s" %(idx)) 
+    generate_legend(ax, len(datapoints[0][1]), plot_description)
     plt.savefig(pdf, format='pdf')
 
 def generate_legend(ax, n, plot_description):
