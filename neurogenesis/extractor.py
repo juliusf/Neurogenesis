@@ -11,6 +11,8 @@ def extract(scalars_file, simulations):
     [scalars.append(scalar.rstrip()) for scalar in scalars_file]
     scalars_file.close()
     for simulation in simulations.values():
+        scalar_encountered = dict( zip( scalars, [False] * len(scalars)))
+
         try:
             path = None
             resultdir = os.path.join(simulation.path, "results")
@@ -26,10 +28,15 @@ def extract(scalars_file, simulations):
                         for scalar in scalars:
                             if scalar in line:
                                 simulation.results[scalar] = extract_scalar_value(line)
+                                scalar_encountered[scalar] = True
                     elif line.startswith("param"):
                         for scalar in scalars:
                             if scalar in line:
                                 simulation.results[scalar] = extract_parameter_value(line)
+                                scalar_encountered[scalar] = True
+            for k,v in scalar_encountered.items():
+                if not v:
+                    Logger.warning("Couldn't find scalar %s in result file %s!" % (k, path) )
         except IOError as e:
             Logger.error("Results file for simulation: %s not found! error: %s" % (simulation.path, e.strerror))
             sys.exit(-1)
