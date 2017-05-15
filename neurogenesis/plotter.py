@@ -96,8 +96,10 @@ def generate_plot(simulation, plot_description, pdf):
     line_parameter = plot_description['line']
     col_parameter = plot_description['color']
 
-    nr_line_parameters = len(config_map[line_parameter])
-    nr_col_parameters = len(config_map[col_parameter])
+  
+    nr_line_parameters = len(config_map[line_parameter]) if line_parameter is not '' else 1
+  
+    nr_col_parameters = len(config_map[col_parameter]) if col_parameter is not '' else 1
 
     line_mode = False
     ax = None
@@ -134,7 +136,9 @@ def generate_plot(simulation, plot_description, pdf):
             line_mode = not line_mode
             plt.gca().set_prop_cycle(None) #resets colorcycle
 
-        label = "%s | %s" % (current_config[line_parameter], current_config[col_parameter])
+        line_part = "%s " %  (current_config[line_parameter]) if line_parameter is not '' else ''
+        label_part = "%s " %  (current_config[col_parameter]) if col_parameter is not '' else ''
+        label = line_part + "|" + label_part 
         if line_mode:
             ax.errorbar(x_s, y_s, yerr=y_err, label=label , marker="o", lw=3)
         else:
