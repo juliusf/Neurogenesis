@@ -63,6 +63,14 @@ def main():
         Logger.info("trying to purge old simulation data...")
         clean_old_configs(args)
 
+    elif args.command == "retry":
+        Logger.info("Retrying failed simulation runs...")
+        simulation = deserialize_sim_data(args.metaFile)
+        sim = runner.run_simulation(args.mpiWorker, args.hostfile, args.nrRanks, simulation, retry_only = True)
+        Logger.info("Saving simulation Metadata")
+        serialize_sim_data(args.metaFile, sim)
+        send_notification(args, sim)
+
     else:
         Logger.error("Invlaid command: %s" % str(args.command))
 
