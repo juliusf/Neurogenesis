@@ -5,7 +5,7 @@ from mpi4py import MPI
 class TaskQueue():
     def __init__(self, simulations):
         self.num_tasks = len(simulations.values())
-        self.tasks = simulations.values()
+        self.tasks = list(simulations.values())
         self.next_sim = 0
         self.completed_tasks = {}
 

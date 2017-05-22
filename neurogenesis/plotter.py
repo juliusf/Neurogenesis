@@ -49,7 +49,7 @@ def get_datapoints_in_buckets(simulations, x_axis_attr, y_axis_attr, filter=None
             if result:
                 try:
                     datapoints.append((sim.results[x_axis_attr], sim.results[y_axis_attr]))
-                except KeyError, e:
+                except KeyError as e:
                     Logger.error("Could not find desired axis %s in data set!" % (e))
                     Logger.error("Available are: %s" % (sim.results.keys()))
                     exit(-1)
@@ -90,7 +90,7 @@ def generate_plot(simulation, plot_description, pdf):
                 if entry[0] == group:
                     return entry[1]
             Logger.warning("couldn't find group-key %s" % (group))
-        plot_configs = sorted(plot_configs, key= getKey)
+        plot_configs = sorted(plot_configs, key=getKey)
 
 
     line_parameter = plot_description['line']

@@ -6,10 +6,9 @@ from neurogenesis.util import Logger
 
 
 def extract(scalars_file, simulations):
-    scalars = []
-    scalars_file = open(scalars_file, "rb")
-    [scalars.append(scalar.rstrip()) for scalar in scalars_file]
-    scalars_file.close()
+    with open(scalars_file, "r") as scalars_file:
+        scalars = [scalar.rstrip() for scalar in scalars_file]
+
     for simulation in simulations.values():
         scalar_encountered = dict( zip( scalars, [False] * len(scalars)))
 
