@@ -70,7 +70,11 @@ def main():
         Logger.info("Saving simulation Metadata")
         serialize_sim_data(args.metaFile, sim)
         send_notification(args, sim)
-
+    elif args.command == "dump":
+        Logger.info("dumping the first 50 run hashes...")
+        simulation = deserialize_sim_data(args.metaFile)
+        runs = simulation.simulation_runs.keys()[:50]
+        [Logger.info(run) for run in runs]
     else:
         Logger.error("Invlaid command: %s" % str(args.command))
 
