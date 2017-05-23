@@ -1,7 +1,9 @@
-import pickle
 import gc
+import pickle
 import sys
+
 from neurogenesis.util import Logger
+
 
 class SimulationRun():
     def __init__(self):
@@ -19,13 +21,15 @@ class SimulationRun():
         self.last_run_at = 0
         self.config_name = ""
 
+
 class Simulation():
-        def __init__(self):
-            self.simulation_runs = {}
-            self.name = ""
-            self.last_executed = ""
-            self.total_duration = -1
-            self.total_non_zero_exit_codes = -1
+    def __init__(self):
+        self.simulation_runs = {}
+        self.name = ""
+        self.last_executed = ""
+        self.total_duration = -1
+        self.total_non_zero_exit_codes = -1
+
 
 def serialize_sim_data(simName, simulations):
     file = open(simName, "wb+")

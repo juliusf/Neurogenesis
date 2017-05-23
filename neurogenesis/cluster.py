@@ -1,8 +1,9 @@
-from neurogenesis.util import Logger
 from mpi4py import MPI
 
+from neurogenesis.util import Logger
 
-class TaskQueue():
+
+class TaskQueue:
     def __init__(self, simulations):
         self.num_tasks = len(simulations.values())
         self.tasks = list(simulations.values())
@@ -27,17 +28,19 @@ class TaskQueue():
     def get_completed_tasks(self):
         return self.completed_tasks
 
+
 class MPITags:
     DIE = 1
     WORK = 2
     FEEDBACK = 3
 
-class Cluster():
+
+class Cluster:
     MASTER_CONTROLLER = 0
 
     def __init__(self, comm):
         self.master_controller = self.MASTER_CONTROLLER
-        self.nr_ranks = comm.Get_size() -1
+        self.nr_ranks = comm.Get_size() - 1
         self.active_ranks = []
         self.comm = comm
 
@@ -50,14 +53,14 @@ class Cluster():
                 self.active_ranks.append(i)
 
     def wait_and_reschedule(self, queue):
-        while (queue.has_next()):
+        while queue.has_next():
             reception_status = MPI.Status()
             completed_task = self.comm.recv(source=MPI.ANY_SOURCE, tag=MPITags.FEEDBACK, status=reception_status)
             self.check_exit_code(completed_task)
             queue.set_task_complete(completed_task)
             task = queue.get_next()
             Logger.info(" %s/%s: sent job %s to rank %s" % (
-            queue.get_job_nr(), queue.num_tasks, task.hash, reception_status.source))
+                queue.get_job_nr(), queue.num_tasks, task.hash, reception_status.source))
             self.comm.send(task, dest=reception_status.source, tag=MPITags.WORK)
 
     def synchronize(self, queue):
@@ -77,4 +80,4 @@ class Cluster():
         if run.last_exit_code != 0:
             Logger.warning("Task %s on node %s exited with non zero exit code!" % (run.hash, run.last_executed_on_rank))
         else:
-            Logger.debug("Received exit code 0 from rank %s" % (run.last_executed_on_rank))
+            Logger.debug("Received exit code 0 from rank %s" % run.last_executed_on_rank)

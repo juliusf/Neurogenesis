@@ -1,32 +1,36 @@
 #! /usr/bin/env python3
 
 import argparse
-import sys
-import httplib2 as httplib, urllib
-import shutil
 import datetime
+import functools
+import shutil
+import sys
+
+import requests
+
 from neurogenesis import demux
-from neurogenesis import runner
 from neurogenesis import extractor
-from neurogenesis.util import Logger
+from neurogenesis import runner
 from neurogenesis.base import serialize_sim_data, deserialize_sim_data, Simulation
 from neurogenesis.plotter import plot_simulations
-import functools
-import requests
+from neurogenesis.util import Logger
+
 
 def main():
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument("command", help="command to be executed. Possible values are: simulate, extract, plot, clean")
+    arg_parser.add_argument("command",
+                            help="command to be executed. Possible values are: simulate, extract, plot, clean")
     arg_parser.add_argument("--inifile", help="specifies the location of the ini file to be executed.")
     arg_parser.add_argument("--outdir", help="specifies the location where files should be written to.")
     arg_parser.add_argument("--inetdir", help='location of the inet executable on NFS share')
     arg_parser.add_argument("--omnetdir", help="location of the omnet executable on NFS share")
-    arg_parser.add_argument("--additionalFiles", nargs="+", help="additional Files which should be copied to the output dirs")
+    arg_parser.add_argument("--additionalFiles", nargs="+",
+                            help="additional Files which should be copied to the output dirs")
     arg_parser.add_argument("--nrRanks", help="Nr of ranks the simulation should be distributed to")
     arg_parser.add_argument("--mpiWorker", help="location of the MPI worker script")
-    arg_parser.add_argument("--hostfile", help = "location of the host file")
-    arg_parser.add_argument("--extractScalarsFile", help= "List of scalars to be extracted")
-    arg_parser.add_argument("--extractVectorsFile", help= "List of vectors to be extracted")
+    arg_parser.add_argument("--hostfile", help="location of the host file")
+    arg_parser.add_argument("--extractScalarsFile", help="List of scalars to be extracted")
+    arg_parser.add_argument("--extractVectorsFile", help="List of vectors to be extracted")
     arg_parser.add_argument("--metaFile", help="Meta file where simulation metadata is stored")
     arg_parser.add_argument("--plotScript", help="location of the plot script")
     arg_parser.add_argument("--notificationKeyFile", help="location of the pushover keyfile")
@@ -68,10 +72,11 @@ def main():
     elif args.command == "retry":
         Logger.info("Retrying failed simulation runs...")
         simulation = deserialize_sim_data(args.metaFile)
-        sim = runner.run_simulation(args.mpiWorker, args.hostfile, args.nrRanks, simulation, retry_only = True)
+        sim = runner.run_simulation(args.mpiWorker, args.hostfile, args.nrRanks, simulation, retry_only=True)
         Logger.info("Saving simulation Metadata")
         serialize_sim_data(args.metaFile, sim)
         send_notification(args, sim)
+
     elif args.command == "dump":
         Logger.info("dumping the first 50 run hashes...")
         simulation = deserialize_sim_data(args.metaFile)
@@ -80,10 +85,10 @@ def main():
     else:
         Logger.error("Invlaid command: %s" % str(args.command))
 
-def run_simulation(args, sim):
-        Logger.info("Starting distributed Simulation with %i ranks" % args.nrRanks)
-        return runner.run_simulation(args.mpiWorker, args.hostfile, args.nrRanks, sim)
 
+def run_simulation(args, sim):
+    Logger.info("Starting distributed Simulation with %i ranks" % args.nrRanks)
+    return runner.run_simulation(args.mpiWorker, args.hostfile, args.nrRanks, sim)
 
 
 def extract(args):
@@ -105,12 +110,14 @@ def plot_simfile(args):
     simulations = deserialize_sim_data(args.metaFile)
     plot_simulations(simulations, args.plotScript)
 
+
 def write_sim_config(args):
     if args.inifile is None:
         Logger.error("No ini File specified!")
         sys.exit(-127)
     simulations = demux.demux_and_write_simulation(args)
     return simulations
+
 
 def clean_old_configs(args):
     try:
@@ -122,6 +129,7 @@ def clean_old_configs(args):
     Logger.info("purging old simulation data")
     for simulation in simulations.simulation_runs.values():
         shutil.rmtree(simulation.path, ignore_errors=True)
+
 
 def send_notification(args, sim):
     try:
@@ -135,24 +143,25 @@ def send_notification(args, sim):
         "token": "ae1u9qxnk2obfgiodr19rrbo2bsazs",
         "user": secret,
         "message": "simulation %s (%s) finished. \n duration: %s \n non-zero exits: %s \n ran on %s ranks" % (
-        sim.name, args.inifile, sim.total_duration, sim.total_non_zero_exit_codes, args.nrRanks),
+            sim.name, args.inifile, sim.total_duration, sim.total_non_zero_exit_codes, args.nrRanks),
     })
 
     pushover_secret_file.close()
+
 
 def write_default_parameters(args):
     if args.mpiWorker is None:
         args.mpiWorker = "/mnt/distsim/simtools/mpiworker"
 
-    if args.hostfile  is None:
+    if args.hostfile is None:
         args.hostfile = "/mnt/distsim/simtools/hostfile"
 
-    #automatically parses hostfile to get the correct number of ranks
+    # automatically parses hostfile to get the correct number of ranks
     if args.nrRanks is None:
         try:
             with open(args.hostfile, "r") as f:
                 h = [[y.split("=") for y in x.strip().split()] for x in f if len(x.strip()) > 1 and x[0] != '#']
-            args.nrRanks = functools.reduce(lambda x,y: x+int(y[1][1]), h, 0)
+            args.nrRanks = functools.reduce(lambda x, y: x + int(y[1][1]), h, 0)
         except IOError as e:
             Logger.warning("No hostfile specified and default location %s not present!" % (args.hostfile))
             args.nrRanks = 0
@@ -192,6 +201,7 @@ def write_default_parameters(args):
     if args.configName is None:
         args.configName = "General"
     return args
+
 
 if __name__ == '__main__':
     main()

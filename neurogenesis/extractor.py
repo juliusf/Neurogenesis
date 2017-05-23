@@ -1,7 +1,7 @@
+import os
 import re
 import sys
 
-import os
 from neurogenesis.util import Logger
 
 
@@ -10,7 +10,7 @@ def extract(scalars_file, simulations):
         scalars = [scalar.rstrip() for scalar in scalars_file]
 
     for simulation in simulations.values():
-        scalar_encountered = dict( zip( scalars, [False] * len(scalars)))
+        scalar_encountered = dict(zip(scalars, [False] * len(scalars)))
 
         try:
             path = None
@@ -33,9 +33,9 @@ def extract(scalars_file, simulations):
                             if scalar in line:
                                 simulation.results[scalar] = extract_parameter_value(line)
                                 scalar_encountered[scalar] = True
-            for k,v in scalar_encountered.items():
+            for k, v in scalar_encountered.items():
                 if not v:
-                    Logger.warning("Couldn't find scalar %s in result file %s!" % (k, path) )
+                    Logger.warning("Couldn't find scalar %s in result file %s!" % (k, path))
         except IOError as e:
             Logger.error("Results file for simulation: %s not found! error: %s" % (simulation.path, e.strerror))
             sys.exit(-1)
@@ -57,7 +57,7 @@ def extract_parameter_value(line):
     else:
         segments = line.strip().split(" ")
         value = segments[-1]
-    value = re.sub("[^0-9e\-\.]", "", value)  # replaces all non numeric values
+    value = re.sub("[^0-9e\-.]", "", value)  # replaces all non numeric values
     return float(value)
 
 
@@ -75,7 +75,7 @@ def extract_vectors(vector_file, simulations):
                     break
             if path is None:
                 raise IOError('could not find result file!')
-            with open(path) as result_vector: # valid til omnet5.0
+            with open(path) as result_vector:  # valid til omnet5.0
                 values = {}
                 values_names = {}
                 for line in result_vector:
@@ -94,11 +94,11 @@ def extract_vectors(vector_file, simulations):
             Logger.error("Results file for simulation: %s not found! error: %s" % (simulation.path, e.strerror))
             sys.exit(-1)
 
-    for k, v in encountered_filters.iteritems():
+    for k, v in encountered_filters.items():
         if not v:
-            Logger.warning("Exctractor couldn't find match for filter: %s" % (k))
+            Logger.warning("Exctractor couldn't find match for filter: %s" % k)
         else:
-            Logger.info("Extractor found match for filter %s" % (k))
+            Logger.info("Extractor found match for filter %s" % k)
     return simulations
 
 

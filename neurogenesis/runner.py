@@ -1,26 +1,27 @@
-from neurogenesis.util import Logger, PrintColors
-import sys
-
 import datetime
 import os
+import sys
 
-def run_simulation(path_to_execute_binary, path_to_hosts_file, nr_ranks, sim, retry_only=False ):
+from neurogenesis.util import Logger, PrintColors
+
+
+def run_simulation(path_to_execute_binary, path_to_hosts_file, nr_ranks, sim, retry_only=False):
     from mpi4py import MPI
     from neurogenesis.cluster import Cluster, TaskQueue
 
     start_time = datetime.datetime.now()
     mpi_info = MPI.Info.Create()
-    #mpi_info.Set("hostfile", path_to_hosts_file)
+    # mpi_info.Set("hostfile", path_to_hosts_file)
     mpi_info.Set("add-hostfile", path_to_hosts_file)
     comm = MPI.COMM_WORLD.Spawn(sys.executable,
-                               args=[path_to_execute_binary],
-                               maxprocs=nr_ranks-1,
-                               info=mpi_info).Merge()
+                                args=[path_to_execute_binary],
+                                maxprocs=nr_ranks - 1,
+                                info=mpi_info).Merge()
 
     comm.Barrier()
     if retry_only:
         failed_sims = {}
-        for k,v in sim.simulation_runs.iteritems():
+        for k, v in sim.simulation_runs.iteritems():
             if v.last_exit_code != 0:
                 failed_sims[k] = v
         queue = TaskQueue(failed_sims)
@@ -59,4 +60,3 @@ def write_list_of_sims(file, simulations):
         f.write(hash + "\n")
     f.close()
     Logger.info("Passed %s simulations to MPI runner." % (len(simulations.keys())))
-
