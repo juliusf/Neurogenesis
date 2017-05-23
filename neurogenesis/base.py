@@ -36,6 +36,7 @@ def serialize_sim_data(simName, simulations):
 
 
 def deserialize_sim_data(path):
+    print(path)
     file = open(path, "rb")
     gc.disable()
     sim_data = pickle.load(file)
