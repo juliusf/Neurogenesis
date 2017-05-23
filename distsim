@@ -11,6 +11,9 @@ import luigi.scheduler
 from neurogenesis.task import *
 
 from neurogenesis.features import distsim_simulate, distsim_extract, distsim_plot, distsim_clean, distsim_retry, distsim_dump
+from neurogenesis.base import Logger
+
+from time import sleep
 
 def main():
     arg_parser = argparse.ArgumentParser()
@@ -33,14 +36,20 @@ def main():
     arg_parser.add_argument("--configName", help="name of the config in ini to execute")
     args = arg_parser.parse_args()
     args = write_default_parameters(args)
+    args = vars(args)
 
-    if args.command == "simulate":
-        pure_args = vars(args)
+    command = args['command']
+    if command == "simulate":
         tasks = []
-        tasks.append(RunSimulationTask(args=pure_args))
+        tasks.append(RunSimulationTask(args=args))
 
-        luigi.build(tasks, workers=1, local_scheduler=False)
-
+        while True:
+                luigi.build(tasks, workers=1, local_scheduler=False)
+                if not tasks[0].complete():
+                        Logger.warning("Task could not be completed. Is the cluster busy? Retrying in 15 secs")
+                        sleep(15)
+                else:
+                    break
         #   Logger.info("trying to purge old simulation data...")
      #   clean_old_configs(args)
      #   Logger.info("Creating simulation configs...")
@@ -56,19 +65,18 @@ def main():
      #   serialize_sim_data(args.metaFile, sim)
      #   send_notification(args, sim)
 
-    elif args.command == "extract":
-        args = vars(args)
+    elif command == "extract":
         distsim_extract(args)
-    elif args.command == "plot":
+    elif command == "plot":
         distsim_plot(args)
-    elif args.command == "clean":
+    elif command == "clean":
         distsim_clean(args)
-    elif args.command == "retry":
+    elif command == "retry":
         distsim_retry(args)
-    elif args.command == "dump":
+    elif command == "dump":
         distsim_dump(args)
     else:
-        Logger.error("Invlaid command: %s" % str(args.command))
+        Logger.error("Invlaid command: %s" % str(command))
 
 def write_default_parameters(args):
     if args.mpiWorker is None:
