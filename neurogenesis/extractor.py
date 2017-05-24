@@ -62,7 +62,7 @@ def extract_parameter_value(line):
 
 
 def extract_vectors(vector_file, simulations):
-    with open(vector_file, "rb") as vector_file:
+    with open(vector_file, "r") as vector_file:
         vectors = [vector.rstrip() for vector in vector_file]
     encountered_filters = {}
     for simulation in simulations.values():

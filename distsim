@@ -16,7 +16,7 @@ def main():
     arg_parser.add_argument("--outdir", help="specifies the location where files should be written to.")
     arg_parser.add_argument("--inetdir", help='location of the inet executable on NFS share')
     arg_parser.add_argument("--omnetdir", help="location of the omnet executable on NFS share")
-    arg_parser.add_argument("--additionalFiles", nargs="+",
+    arg_parser.add_argument("--additionalFiles",
                             help="additional Files which should be copied to the output dirs")
     arg_parser.add_argument("--nrRanks", help="Nr of ranks the simulation should be distributed to")
     arg_parser.add_argument("--mpiWorker", help="location of the MPI worker script")
@@ -37,30 +37,15 @@ def main():
     if command == "simulate":
         import luigi
         from neurogenesis.task import RunSimulationTask
-        tasks = []
-        tasks.append(RunSimulationTask(args=args))
+        tasks = [RunSimulationTask(args=args)]
 
         while True:
-                luigi.build(tasks, workers=1, local_scheduler=False)
-                if not tasks[0].complete():
-                        Logger.warning("Task could not be completed. Is the cluster busy? Retrying in 15 secs")
-                        sleep(15)
-                else:
-                    break
-        #   Logger.info("trying to purge old simulation data...")
-     #   clean_old_configs(args)
-     #   Logger.info("Creating simulation configs...")
-     #   sim = Simulation()
-     #   sim.last_executed = datetime.datetime.now()
-
-     #   if args.name is not None:
-     #       sim.name = args.name
-
-     #   sim.simulation_runs = write_sim_config(args)
-     #   sim = run_simulation(args, sim)
-     #   Logger.info("Saving simulation Metadata")
-     #   serialize_sim_data(args.metaFile, sim)
-     #   send_notification(args, sim)
+            luigi.build(tasks, workers=1, local_scheduler=False)
+            if not tasks[0].complete():
+                Logger.warning("Task could not be completed. Is the cluster busy? Retrying in 15 secs")
+                sleep(15)
+            else:
+                break
 
     elif command == "extract":
         distsim_extract(args)
@@ -74,6 +59,7 @@ def main():
         distsim_dump(args)
     else:
         Logger.error("Invlaid command: %s" % str(command))
+
 
 def write_default_parameters(args):
     if args.mpiWorker is None:
