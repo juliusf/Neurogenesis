@@ -14,6 +14,40 @@
           - python-pip
           - libopenmpi-dev
           - python-dev
+          - build-essential
+          - gcc
+          - g++
+          - bison
+          - flex
+          - perl
+          - tcl-dev
+          - tk-dev
+          - libxml2-dev
+          - zlib1g-dev
+          - default-jre
+          - doxygen
+          - graphviz
+          - libwebkitgtk-1.0-0
+          - openmpi-bin
+          - libopenmpi-dev
+          - htop
+          - bmon
+          - iotop
+          - tmux
+          - lm-sensors
+          - libosgearth3
+          - libosgearth-dev
+          - libblas3
+          - qt4-qmake
+          - libqt4-dev
+          - libqt4-opengl-dev
+          - openscenegraph
+          - libopenscenegraph-dev
+          - openscenegraph-plugin-osgearth
+          - osgearth
+          - osgearth-data
+          - libosgearth-dev
+          - python3-mpi4py
 
     - name: install mpi4python dependency
       pip:
