@@ -155,13 +155,3 @@ def create_dynamic_line(line):
         dline.tail_part = tail_tokens[1]
     return dline
 
-def parse_tokens(tokens):
-    more_tokens = []
-    for token in tokens:
-        if "=" in token: # assignment
-            assignment_tokens = token.split("=")
-            more_tokens.append(Token(0, TokenTypes.SYMBOL), )
-
-def dynamic_line_range(line):
-    #has '..', optional step parameter
-    pass
