@@ -5,12 +5,15 @@ import sys
 import httplib, urllib
 import shutil
 import datetime
-from neurogenesis import demux
-from neurogenesis import runner
-from neurogenesis import extractor
-from neurogenesis.util import Logger
-from neurogenesis.base import serialize_sim_data, deserialize_sim_data, Simulation
-from neurogenesis.plotter import plot_simulations
+
+import luigi
+import luigi.scheduler
+from neurogenesis.task import *
+
+from neurogenesis.features import distsim_simulate, distsim_extract, distsim_plot, distsim_clean, distsim_retry, distsim_dump
+from neurogenesis.base import Logger
+
+from time import sleep
 
 def main():
     arg_parser = argparse.ArgumentParser()
@@ -19,7 +22,7 @@ def main():
     arg_parser.add_argument("--outdir", help="specifies the location where files should be written to.")
     arg_parser.add_argument("--inetdir", help='location of the inet executable on NFS share')
     arg_parser.add_argument("--omnetdir", help="location of the omnet executable on NFS share")
-    arg_parser.add_argument("--additionalFiles", nargs="+", help="additional Files which should be copied to the output dirs")
+    arg_parser.add_argument("--additionalFiles",  help="additional Files which should be copied to the output dirs")
     arg_parser.add_argument("--nrRanks", help="Nr of ranks the simulation should be distributed to")
     arg_parser.add_argument("--mpiWorker", help="location of the MPI worker script")
     arg_parser.add_argument("--hostfile", help = "location of the host file")
@@ -33,107 +36,47 @@ def main():
     arg_parser.add_argument("--configName", help="name of the config in ini to execute")
     args = arg_parser.parse_args()
     args = write_default_parameters(args)
+    args = vars(args)
 
-    if args.command == "simulate":
-        Logger.info("trying to purge old simulation data...")
-        clean_old_configs(args)
-        Logger.info("Creating simulation configs...")
-        sim = Simulation()
-        sim.last_executed = datetime.datetime.now()
+    command = args['command']
+    if command == "simulate":
+        tasks = []
+        tasks.append(RunSimulationTask(args=args))
 
-        if args.name is not None:
-            sim.name = args.name
+        while True:
+                luigi.build(tasks, workers=1, local_scheduler=False)
+                if not tasks[0].complete():
+                        Logger.warning("Task could not be completed. Is the cluster busy? Retrying in 15 secs")
+                        sleep(15)
+                else:
+                    break
+        #   Logger.info("trying to purge old simulation data...")
+     #   clean_old_configs(args)
+     #   Logger.info("Creating simulation configs...")
+     #   sim = Simulation()
+     #   sim.last_executed = datetime.datetime.now()
 
-        sim.simulation_runs = write_sim_config(args)
-        sim = run_simulation(args, sim)
-        Logger.info("Saving simulation Metadata")
-        serialize_sim_data(args.metaFile, sim)
-        send_notification(args, sim)
+     #   if args.name is not None:
+     #       sim.name = args.name
 
-    elif args.command == "extract":
-        Logger.info("Extracting Scalars")
-        updated_simulations = extract(args)
-        Logger.info("done. Writing results back to metafile")
-        serialize_sim_data(args.metaFile, updated_simulations)
+     #   sim.simulation_runs = write_sim_config(args)
+     #   sim = run_simulation(args, sim)
+     #   Logger.info("Saving simulation Metadata")
+     #   serialize_sim_data(args.metaFile, sim)
+     #   send_notification(args, sim)
 
-    elif args.command == "plot":
-        plot_simfile(args)
-
-    elif args.command == "clean":
-        Logger.info("trying to purge old simulation data...")
-        clean_old_configs(args)
-
-    elif args.command == "retry":
-        Logger.info("Retrying failed simulation runs...")
-        simulation = deserialize_sim_data(args.metaFile)
-        sim = runner.run_simulation(args.mpiWorker, args.hostfile, args.nrRanks, simulation, retry_only = True)
-        Logger.info("Saving simulation Metadata")
-        serialize_sim_data(args.metaFile, sim)
-        send_notification(args, sim)
-
+    elif command == "extract":
+        distsim_extract(args)
+    elif command == "plot":
+        distsim_plot(args)
+    elif command == "clean":
+        distsim_clean(args)
+    elif command == "retry":
+        distsim_retry(args)
+    elif command == "dump":
+        distsim_dump(args)
     else:
-        Logger.error("Invlaid command: %s" % str(args.command))
-
-def run_simulation(args, sim):
-        Logger.info("Starting distributed Simulation with %i ranks" % args.nrRanks)
-        return runner.run_simulation(args.mpiWorker, args.hostfile, args.nrRanks, sim)
-
-
-
-def extract(args):
-    simulation = deserialize_sim_data(args.metaFile)
-    simulations = simulation.simulation_runs
-    try:
-        simulations = extractor.extract(args.extractScalarsFile, simulations)
-    except IOError as e:
-        Logger.warning("Can't read scalars file: %s, exception: %s" % (args.extractScalarsFile, e.strerror))
-    try:
-        simulations = extractor.extract_vectors(args.extractVectorsFile, simulations)
-    except IOError as e:
-        Logger.warning("Can't read vectors file: %s, exception: %s" % (args.extractVectorsFile, e.strerror))
-    simulation.simulation_runs = simulations
-    return simulation
-
-
-def plot_simfile(args):
-    simulations = deserialize_sim_data(args.metaFile)
-    plot_simulations(simulations, args.plotScript)
-
-def write_sim_config(args):
-    if args.inifile is None:
-        Logger.error("No ini File specified!")
-        sys.exit(-127)
-    simulations = demux.demux_and_write_simulation(args)
-    return simulations
-
-def clean_old_configs(args):
-    try:
-        simulations = deserialize_sim_data(args.metaFile)
-    except IOError as e:
-        Logger.info("no previous simulations found")
-        return
-
-    Logger.info("purging old simulation data")
-    for simulation in simulations.simulation_runs.values():
-        shutil.rmtree(simulation.path, ignore_errors=True)
-
-def send_notification(args, sim):
-    try:
-        pushover_secret_file = open(args.notificationKeyFile, "r")
-    except IOError:
-        Logger.warning("pushover secret-file does not exist")
-        return
-    secret = pushover_secret_file.read().strip()
-    conn = httplib.HTTPSConnection("api.pushover.net:443")
-    conn.request("POST", "/1/messages.json",
-    urllib.urlencode({
-    "token": "ae1u9qxnk2obfgiodr19rrbo2bsazs",
-    "user": secret,
-    "message": "simulation %s (%s) finished. \n duration: %s \n non-zero exits: %s \n ran on %s ranks" % (sim.name, args.inifile, sim.total_duration, sim.total_non_zero_exit_codes, args.nrRanks),
-  }), { "Content-type": "application/x-www-form-urlencoded" })
-    conn.getresponse()
-
-    pushover_secret_file.close()
+        Logger.error("Invlaid command: %s" % str(command))
 
 def write_default_parameters(args):
     if args.mpiWorker is None:
@@ -158,12 +101,12 @@ def write_default_parameters(args):
     if args.inetdir is None:
         args.inetdir = "/mnt/distsim/inet/src/"
 
-    additional_files = []
+    #additional_files = []
 
-    if args.additionalFiles is not None:
-        for file in args.additionalFiles:
-            additional_files.append(file)
-    args.additionalFiles = additional_files
+    #if args.additionalFiles is not None:
+    #    for file in args.additionalFiles:
+    #        additional_files.append(file)
+    #args.additionalFiles = additional_files
 
     if args.omnetdir is None:
         args.omnetdir = "/mnt/distsim/omnetpp-5.0/"
@@ -186,6 +129,7 @@ def write_default_parameters(args):
 
     if args.configName is None:
         args.configName = "General"
+
     return args
 
 if __name__ == '__main__':

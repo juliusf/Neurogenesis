@@ -21,9 +21,9 @@ class DynamicLine(): # TODO better name?
         return self.__str__()
 
 def demux_and_write_simulation(args):
-    ini_file = args.inifile
-    out_dir = args.outdir
-    config = args.configName
+    ini_file = args['inifile']
+    out_dir = args['outdir']
+    config = args['configName']
 
     lines = []
     dynamic_lines = []
@@ -60,7 +60,7 @@ def demux_and_write_simulation(args):
     return simulation_runs
 
 def write_sim_data(args, lines, hash, target_file):
-    full_folder_path = check_and_create_folder(args.outdir, hash)
+    full_folder_path = check_and_create_folder(args['outdir'], hash)
     write_ini(full_folder_path, lines)
     create_bash_script(args, full_folder_path,target_file)
     write_additional_files(args, full_folder_path)
@@ -71,7 +71,7 @@ def create_file_hash(lines):
     return hash.hexdigest()
 
 def write_additional_files(args, folder_path):
-    files = args.additionalFiles
+    files = args['additionalFiles'].split()
     for file in files:
         base_name = os.path.basename(file)
         new_file_path = folder_path + '/'+ base_name
@@ -105,9 +105,9 @@ def check_and_create_file(full_path):
 
 def create_bash_script(args, target_folder, target_file):
 
-    omnet_exec = args.omnetdir
-    inet_dir = args.inetdir
-    config_name = args.configName
+    omnet_exec = args['omnetdir']
+    inet_dir = args['inetdir']
+    config_name = args['configName']
 
     script = """
     #!/bin/bash
