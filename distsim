@@ -6,10 +6,6 @@ import httplib, urllib
 import shutil
 import datetime
 
-import luigi
-import luigi.scheduler
-from neurogenesis.task import *
-
 from neurogenesis.features import distsim_simulate, distsim_extract, distsim_plot, distsim_clean, distsim_retry, distsim_dump
 from neurogenesis.base import Logger
 
@@ -40,6 +36,8 @@ def main():
 
     command = args['command']
     if command == "simulate":
+        import luigi
+        from neurogenesis.task import RunSimulationTask
         tasks = []
         tasks.append(RunSimulationTask(args=args))
 
@@ -100,13 +98,6 @@ def write_default_parameters(args):
 
     if args.inetdir is None:
         args.inetdir = "/mnt/distsim/inet/src/"
-
-    #additional_files = []
-
-    #if args.additionalFiles is not None:
-    #    for file in args.additionalFiles:
-    #        additional_files.append(file)
-    #args.additionalFiles = additional_files
 
     if args.omnetdir is None:
         args.omnetdir = "/mnt/distsim/omnetpp-5.0/"
