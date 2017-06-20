@@ -65,6 +65,33 @@ def get_datapoints_in_buckets(simulations, x_axis_attr, y_axis_attr, filter=None
 
     return sorted(tuples, key=lambda x: x[0])
 
+def get_time_series_in_buckets(simulations, y_axis_attrs, filter=None):
+    results = []
+    for sim in simulations.values():
+        if type(filter) is tuple:
+            if not filter or sim.parameters[filter[0]] == filter[1]:
+                try:
+                    res = {}
+                    for attr in y_axis_attrs:
+                        res[attr] = sim.result_vectors[attr]
+                    results.append(res)
+                except KeyError, e:
+                    Logger.error("Could not find desired Y axis: %s in dataset" %(e))
+        else:
+            result = check_filter(sim, filter)
+            if result:
+                try:
+                    res = {}
+                    for attr in y_axis_attrs:
+                        res[attr] = sim.result_vectors[attr]
+                    results.append(res)
+                except KeyError, e:
+                    Logger.error("Could not find desired axis %s in data set!" % (e))
+                    Logger.error("Available are: %s" % (sim.result_vectors.keys()))
+                    exit(-1)
+
+    return results
+
 def generate_plot(simulation, plot_description, pdf):
     dimensions = plot_description['dimensions']
     config_map = {}
@@ -96,9 +123,9 @@ def generate_plot(simulation, plot_description, pdf):
     line_parameter = plot_description['line']
     col_parameter = plot_description['color']
 
-  
+
     nr_line_parameters = len(config_map[line_parameter]) if line_parameter is not '' else 1
-  
+
     nr_col_parameters = len(config_map[col_parameter]) if col_parameter is not '' else 1
 
     line_mode = False
@@ -138,7 +165,7 @@ def generate_plot(simulation, plot_description, pdf):
 
         line_part = "%s " %  (current_config[line_parameter]) if line_parameter is not '' else ''
         label_part = "%s " %  (current_config[col_parameter]) if col_parameter is not '' else ''
-        label = line_part + "|" + label_part 
+        label = line_part + "|" + label_part
         if line_mode:
             ax.errorbar(x_s, y_s, yerr=y_err, label=label , marker="o", lw=3)
         else:

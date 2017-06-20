@@ -85,7 +85,7 @@ def extract_vectors(vector_file, simulations):
                         nr = nr.split(" ")[1]
                         if check_match(vectors, module, name, encountered_filters):
                             values[nr] = []
-                            values_names[nr] = (module, name, nr)
+                            values_names[nr] = (module, name)
                     elif len(line.strip()) > 0 and line.split()[0] in values:
                         v = [float(x) for x in line.split()[1:4]]
                         values[line.split()[0]].append(v)
