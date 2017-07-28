@@ -1,5 +1,5 @@
 import matplotlib as mpl
-mpl.use('pdf')
+#mpl.use('pdf')
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
@@ -52,7 +52,7 @@ def get_datapoints_in_buckets(simulations, x_axis_attr, y_axis_attr, filter=None
                 except KeyError, e:
                     Logger.error("Could not find desired axis %s in data set!" % (e))
                     Logger.error("Available are: %s" % (sim.results.keys()))
-                    exit(-1)
+                    #exit(-1)
 
     for point in datapoints:
         if point[0] not in data_buckets:
@@ -80,22 +80,23 @@ def get_time_series_in_buckets(simulations, y_axis_attrs, filter=None):
         else:
             result = check_filter(sim, filter)
             if result:
-                try:
+                
                     res = {}
                     for attr in y_axis_attrs:
-                        res[attr] = sim.result_vectors[attr]
-                    results.append(res)
-                except KeyError, e:
-                    Logger.error("Could not find desired axis %s in data set!" % (e))
-                    Logger.error("Available are: %s" % (sim.result_vectors.keys()))
-                    exit(-1)
-
+                        try:
+                            print(y_axis_attrs)
+                            res[attr] = sim.result_vectors[attr]
+                        except KeyError, e:
+                            Logger.error("Could not find desired axis %s in data set!" % (e))
+                            Logger.error("Available are: %s" % (sim.result_vectors.keys()))
+                    results.append(res)               
     return results
 
 def generate_plot(simulation, plot_description, pdf):
     dimensions = plot_description['dimensions']
     config_map = {}
     all_filter_values = []
+
 
     for filter_values in dimensions:
         all_filter_values.append(filter_values[1])
@@ -112,6 +113,8 @@ def generate_plot(simulation, plot_description, pdf):
     plot_groups.insert(0, plot_description['color'])
 
     for group in plot_groups:
+        if isinstance(group, tuple): #tuple for named groups
+            group = group[0]
         def getKey(plotConfig):
             for entry in plotConfig:
                 if entry[0] == group:
@@ -131,6 +134,7 @@ def generate_plot(simulation, plot_description, pdf):
     line_mode = False
     ax = None
     box = None
+    use_dotted = plot_description['line'] is not ''
 
     for idx, filter in enumerate(plot_configs):
         current_config = dict(filter)
@@ -165,26 +169,36 @@ def generate_plot(simulation, plot_description, pdf):
 
         line_part = "%s " %  (current_config[line_parameter]) if line_parameter is not '' else ''
         label_part = "%s " %  (current_config[col_parameter]) if col_parameter is not '' else ''
-        label = line_part + "|" + label_part
-        if line_mode:
-            ax.errorbar(x_s, y_s, yerr=y_err, label=label , marker="o", lw=3)
+        label = label_part + " Mbps"
+        
+        if use_dotted :
+            if line_mode:
+                ax.errorbar(x_s, y_s, yerr=y_err, label=label , marker="o", lw=3)
+            else:
+                ax.errorbar(x_s, y_s, yerr=y_err, label=label , fmt="-.", lw=3)
         else:
-            ax.errorbar(x_s, y_s, yerr=y_err, label=label , fmt="-.", lw=3)
+            ax.errorbar(x_s, y_s, yerr=y_err, label=label , marker="o", lw=3)
+
     generate_legend(ax, len(datapoints[0][1]), plot_description)
     plt.savefig(pdf, format='pdf')
 
 def generate_legend(ax, n, plot_description):
     ax.set_xlabel(plot_description['x-axis-label'])
     ax.set_ylabel(plot_description['y-axis-label'])
+    
     plt.figtext(0.02, 0.02, "n=%s" % (n))
     plt.legend(bbox_to_anchor=(0.0, -0.6, 1.0,  0), loc=3, ncol=2, mode="expand", borderaxespad=0.)
 
 def generate_title(plot_description, current_config):
-    title = plot_description['title' ]
+    title = plot_description['title']
 
     for entry in plot_description['group-by']:
-        value = current_config[entry]
-        title += " | %s" % (value)
+        if isinstance(entry, tuple):
+            value =  entry[1] + "=" + current_config[entry[0]]  
+            title += " | %s" % (value)  
+        else:
+            value = current_config[entry]
+            title += " | %s" % (value)
     return title
 
 def plot_simulations(simulations, plot_script_path):
