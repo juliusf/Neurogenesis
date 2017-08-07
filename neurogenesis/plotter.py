@@ -119,9 +119,10 @@ def generate_plot(simulation, plot_description, pdf):
             for entry in plotConfig:
                 if entry[0] == group:
                     return entry[1]
-            Logger.warning("couldn't find group-key %s" % (group))
+                Logger.warning("couldn't find group-key %s" % (group))
+            Logger.warning("available:")
+            Logger.warning(entry)
         plot_configs = sorted(plot_configs, key= getKey)
-
 
     line_parameter = plot_description['line']
     col_parameter = plot_description['color']
@@ -169,7 +170,7 @@ def generate_plot(simulation, plot_description, pdf):
 
         line_part = "%s " %  (current_config[line_parameter]) if line_parameter is not '' else ''
         label_part = "%s " %  (current_config[col_parameter]) if col_parameter is not '' else ''
-        label = label_part + " Mbps"
+        label = label_part + "Mbps|" + current_config['**.rtcWebClient.webRTCCB.enabled'] 
         
         if use_dotted :
             if line_mode:
