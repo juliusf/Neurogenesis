@@ -59,7 +59,10 @@ def extract_parameter_value(line):
         segments = line.strip().split(" ")
         value = segments[-1]
     value = re.sub("[^0-9e\-\.]", "", value)  # replaces all non numeric values
-    return float(value)
+    try:
+        return float(value)
+    except ValueError:
+        return value
 
 
 def extract_vectors(vector_file, simulations):
