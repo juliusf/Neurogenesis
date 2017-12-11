@@ -34,7 +34,7 @@ def demux_and_write_simulation(args):
     with open(ini_file) as input_file:
         for row in input_file:
             if '{' in row.split('#')[0]: # ignore comments (T)
-                line = create_dynamic_line(row)
+                line = create_dynamic_line(row.split('#')[0] + '\n')
                 dynamic_lines.append(line)
                 lines.append(line)
             else:
@@ -132,16 +132,16 @@ def create_bash_script(args, target_folder, target_file):
 
 def create_dynamic_line(line):
     dline = DynamicLine()
-    head_tokens  = line.split('{')
+    head_tokens  = line.split('{',1)
     if head_tokens[0][-1] == "$":
         dline.head_part = head_tokens[0] + '{'
-        tail_tokens = head_tokens[1].split('}')
+        tail_tokens = head_tokens[1].split('}',1)
 
         if( '=' in head_tokens[1]): #assignment
             assignemt = head_tokens[1].split('=')
             dline.head_part += assignemt[0] + " = "# puts the variable name at the beginning
             dynamic_parts = assignemt[1].split(",")
-            dynamic_parts[-1] = dynamic_parts[-1].split('}')[0]
+            dynamic_parts[-1] = dynamic_parts[-1].split('}',1)[0]
             dline.dynamic_part = dynamic_parts
             dline.tail_part = '}' + tail_tokens[1]
         else:
