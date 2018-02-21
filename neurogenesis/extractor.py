@@ -79,25 +79,28 @@ def extract_vectors(vector_file, simulations):
                     break
             if path is None:
                 raise IOError('could not find result file!')
-            with open(path) as result_vector: # valid til omnet5.0
+            with open(path) as result_vector: # valid till omnet5.0
                 values = {}
                 values_names = {}
                 for line in result_vector:
                     if line.startswith("vector"):
-                        nr, module, name = line.split("  ")[0:3]
-                        nr = nr.split(" ")[1]
+                        nr, module = line.split(" ")[1:3]
+                        name = " ".join(line.split(" ")[3:]) #ugly hack to allow for Vector names with spaces
+                        name = name.split(":vector")[0]
+                        name = name.rstrip("ETV\n")
+                        name = name.strip()
                         if check_match(vectors, module, name, encountered_filters):
                             values[nr] = []
                             values_names[nr] = (module, name)
                     elif len(line.strip()) > 0 and line.split()[0] in values:
                         v = [float(x) for x in line.split()[1:4]]
                         values[line.split()[0]].append(v)
+
             for k in values_names:
                 simulation.result_vectors[values_names[k]] = values[k]
         except IOError as e:
             Logger.error("Results file for simulation: %s not found! error: %s" % (simulation.path, e.strerror))
             sys.exit(-1)
-
     for k, v in encountered_filters.iteritems():
         if not v:
             Logger.warning("Exctractor couldn't find match for filter: %s" % (k))

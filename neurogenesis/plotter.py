@@ -1,5 +1,5 @@
 import matplotlib as mpl
-#mpl.use('pdf')
+mpl.use('pdf')
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
@@ -80,7 +80,7 @@ def get_time_series_in_buckets(simulations, y_axis_attrs, filter=None):
         else:
             result = check_filter(sim, filter)
             if result:
-                
+
                     res = {}
                     for attr in y_axis_attrs:
                         try:
@@ -89,7 +89,7 @@ def get_time_series_in_buckets(simulations, y_axis_attrs, filter=None):
                         except KeyError, e:
                             Logger.error("Could not find desired axis %s in data set!" % (e))
                             Logger.error("Available are: %s" % (sim.result_vectors.keys()))
-                    results.append(res)               
+                    results.append(res)
     return results
 
 def generate_plot(simulation, plot_description, pdf):
@@ -170,8 +170,8 @@ def generate_plot(simulation, plot_description, pdf):
 
         line_part = "%s " %  (current_config[line_parameter]) if line_parameter is not '' else ''
         label_part = "%s " %  (current_config[col_parameter]) if col_parameter is not '' else ''
-        label = label_part + "Mbps|" + current_config['**.rtcWebClient.webRTCCB.enabled'] 
-        
+        label = label_part + "Mbps" #+ current_config['**.rtcWebClient.webRTCCB.enabled']
+
         if use_dotted :
             if line_mode:
                 ax.errorbar(x_s, y_s, yerr=y_err, label=label , marker="o", lw=3)
@@ -186,7 +186,7 @@ def generate_plot(simulation, plot_description, pdf):
 def generate_legend(ax, n, plot_description):
     ax.set_xlabel(plot_description['x-axis-label'])
     ax.set_ylabel(plot_description['y-axis-label'])
-    
+
     plt.figtext(0.02, 0.02, "n=%s" % (n))
     plt.legend(bbox_to_anchor=(0.0, -0.6, 1.0,  0), loc=3, ncol=2, mode="expand", borderaxespad=0.)
 
@@ -195,8 +195,8 @@ def generate_title(plot_description, current_config):
 
     for entry in plot_description['group-by']:
         if isinstance(entry, tuple):
-            value =  entry[1] + "=" + current_config[entry[0]]  
-            title += " | %s" % (value)  
+            value =  entry[1] + "=" + current_config[entry[0]]
+            title += " | %s" % (value)
         else:
             value = current_config[entry]
             title += " | %s" % (value)
