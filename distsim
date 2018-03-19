@@ -125,7 +125,7 @@ def write_default_parameters(args):
         args.configName = "General"
 
     if args.notifyMsg is None:
-        args.notifyMsg ""
+        args.notifyMsg = ""
     return args
 
 if __name__ == '__main__':

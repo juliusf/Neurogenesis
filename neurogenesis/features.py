@@ -27,7 +27,9 @@ def distsim_simulate(args):
     sim = run_simulation(args, sim)
     Logger.info("Saving simulation Metadata")
     serialize_sim_data(args['metaFile'], sim)
-    send_notification(args, sim)
+
+    notification_message = "simulation %s (%s) finished. \n duration: %s \n non-zero exits: %s \n ran on %s ranks" % (sim.name, args['inifile'], sim.total_duration, sim.total_non_zero_exit_codes, args['nrRanks'])
+    send_notification(notification_message, args)
 
 def distsim_extract(args):
         Logger.info("Extracting Scalars")
@@ -48,9 +50,9 @@ def distsim_retry(args):
         sim = runner.run_simulation(args['mpiWorker'], args['hostfile'], args['nrRanks'], simulation, retry_only = True)
         Logger.info("Saving simulation Metadata")
         serialize_sim_data(args['metaFile'], sim)
-        
+
         notification_message = "simulation %s (%s) finished. \n duration: %s \n non-zero exits: %s \n ran on %s ranks" % (sim.name, args['inifile'], sim.total_duration, sim.total_non_zero_exit_codes, args['nrRanks'])
-        send_notification(notification_message)
+        send_notification(notification_message, args)
 
 def distsim_dump(args):
         Logger.info("dumping the first 50 run hashes...")
@@ -59,7 +61,7 @@ def distsim_dump(args):
         [Logger.info(run) for run in runs]
 
 def distsim_notify(args):
-        send_notification(args.notifyMsg)
+        send_notification(args['notifyMsg'], args)
 
 def run_simulation(args, sim):
         Logger.info("Starting distributed Simulation with %i ranks" % args['nrRanks'])
@@ -102,7 +104,7 @@ def clean_old_configs(args):
     for simulation in simulations.simulation_runs.values():
         shutil.rmtree(simulation.path, ignore_errors=True)
 
-def send_notification(msg)
+def send_notification(msg, args):
     try:
         pushover_secret_file = open(args['notificationKeyFile'], "r")
     except IOError:
