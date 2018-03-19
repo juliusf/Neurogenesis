@@ -154,7 +154,7 @@ def generate_plot(simulation, plot_description, pdf):
 
         if idx % (nr_line_parameters * nr_col_parameters) == 0:
             fig = plt.figure()
-            title = generate_title(plot_description, current_config)
+            title = generate_title(simulation, plot_description, current_config)
             fig.suptitle(title , fontsize=14, fontweight='bold')
             ax = plt.subplot(111)
             box = ax.get_position()
@@ -190,9 +190,10 @@ def generate_legend(ax, n, plot_description):
     plt.figtext(0.02, 0.02, "n=%s" % (n))
     plt.legend(bbox_to_anchor=(0.0, -0.6, 1.0,  0), loc=3, ncol=2, mode="expand", borderaxespad=0.)
 
-def generate_title(plot_description, current_config):
+def generate_title(simulation, plot_description, current_config):
     title = plot_description['title']
-
+    if simulation.name != "":
+        title += " " + simulation.name + " "
     for entry in plot_description['group-by']:
         if isinstance(entry, tuple):
             value =  entry[1] + "=" + current_config[entry[0]]
