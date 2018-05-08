@@ -1,6 +1,7 @@
 #! /usr/bin/env python
  # -*- coding: utf-8 -*-
 import argparse
+import ConfigParser
 import sys
 import httplib, urllib
 import shutil
@@ -31,8 +32,11 @@ def main():
     arg_parser.add_argument("--name", help="name that is used to identify the simulation run later")
     arg_parser.add_argument("--configName", help="name of the config in ini to execute")
     arg_parser.add_argument("--notifyMsg", help="Message content of the notification to be sent to the mobile device")
+
+    config = ConfigParser.ConfigParser()
+    config.read("config.ini")
     args = arg_parser.parse_args()
-    args = write_default_parameters(args)
+    args = write_default_parameters(args, config)
     args = vars(args)
 
     command = args['command']
@@ -49,20 +53,7 @@ def main():
                         sleep(15)
                 else:
                     break
-        #   Logger.info("trying to purge old simulation data...")
-     #   clean_old_configs(args)
-     #   Logger.info("Creating simulation configs...")
-     #   sim = Simulation()
-     #   sim.last_executed = datetime.datetime.now()
 
-     #   if args.name is not None:
-     #       sim.name = args.name
-
-     #   sim.simulation_runs = write_sim_config(args)
-     #   sim = run_simulation(args, sim)
-     #   Logger.info("Saving simulation Metadata")
-     #   serialize_sim_data(args.metaFile, sim)
-     #   send_notification(args, sim)
 
     elif command == "extract":
         distsim_extract(args)
@@ -79,7 +70,14 @@ def main():
     else:
         Logger.error("Invlaid command: %s" % str(command))
 
-def write_default_parameters(args):
+def write_default_parameters(args, config):
+
+    for key in args.__dict__.keys():
+        try:
+            args.__dict__[key] = config.get('Base', key)
+        except ConfigParser.NoOptionError:
+            pass
+
     if args.mpiWorker is None:
         args.mpiWorker = "/mnt/distsim/simtools/mpiworker"
 

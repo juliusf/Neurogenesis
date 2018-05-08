@@ -3,3 +3,4 @@ luigi>=2.6.1
 matplotlib>=1.5.3
 mpi4p>=2.0.0
 seaborn>=0.7.1
+configparser>=3.5.0

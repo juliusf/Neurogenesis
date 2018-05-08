@@ -203,6 +203,6 @@ def generate_title(simulation, plot_description, current_config):
             title += " | %s" % (value)
     return title
 
-def plot_simulations(simulations, plot_script_path):
+def plot_simulations(simulations, plot_script_path, out_dir = '.'):
     mod = imp.load_source("plot", plot_script_path)
     mod.plot(simulations)
