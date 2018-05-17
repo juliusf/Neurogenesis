@@ -34,10 +34,15 @@ def main():
     arg_parser.add_argument("--notifyMsg", help="Message content of the notification to be sent to the mobile device")
 
     config = ConfigParser.ConfigParser()
-    config.read("config.ini")
+    try:
+        config.read("config.ini")
+    except ConfigParser.NoSectionError:
+        Logger.info("No config.ini found.")
+
     args = arg_parser.parse_args()
     args = write_default_parameters(args, config)
     args = vars(args)
+
 
     command = args['command']
     if command == "simulate":
@@ -72,11 +77,14 @@ def main():
 
 def write_default_parameters(args, config):
 
-    for key in args.__dict__.keys():
-        try:
-            args.__dict__[key] = config.get('Base', key)
-        except ConfigParser.NoOptionError:
-            pass
+    try:
+        for key in args.__dict__.keys():
+            try:
+                args.__dict__[key] = config.get('Base', key)
+            except ConfigParser.NoOptionError:
+                pass
+    except ConfigParser.NoSectionError: #No config file present
+        pass
 
     if args.mpiWorker is None:
         args.mpiWorker = "/mnt/distsim/simtools/mpiworker"
