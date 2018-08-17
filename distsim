@@ -75,7 +75,7 @@ def write_default_parameters(args, config):
     for key in args.__dict__.keys():
         try:
             args.__dict__[key] = config.get('Base', key)
-        except ConfigParser.NoOptionError:
+        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
             pass
 
     if args.mpiWorker is None:
