@@ -210,7 +210,6 @@ def plot_simulations(simulations, plot_script_path, out_dir = '.'):
 def find_vector_XY(result_vectors, module, name, min_values):
     vec = find_vectors(result_vectors, module, name, min_values)
 
-    print(vec.keys())
     if len(vec) > 0:
         vec = vec.popitem()[1]
         x_s = [x[1] for x in vec]
