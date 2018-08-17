@@ -206,3 +206,24 @@ def generate_title(simulation, plot_description, current_config):
 def plot_simulations(simulations, plot_script_path, out_dir = '.'):
     mod = imp.load_source("plot", plot_script_path)
     mod.plot(simulations)
+
+def find_vector_XY(result_vectors, module, name, min_values):
+    vec = find_vectors(result_vectors, module, name, min_values)
+
+    print(vec.keys())
+    if len(vec) > 0:
+        vec = vec.popitem()[1]
+        x_s = [x[1] for x in vec]
+        y_s = [y[2] for y in vec]
+        return x_s, y_s
+    else:
+        return [], []
+
+
+def find_vectors(result_vectors, module, name, min_values):
+    vec = {}
+    for k, v in result_vectors.items():
+        if module in k[0] and name in k[1] and len(v) > min_values:
+            vec[k] = v
+    return vec
+
