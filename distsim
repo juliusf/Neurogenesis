@@ -6,6 +6,7 @@ import sys
 import httplib, urllib
 import shutil
 import datetime
+import os
 
 from neurogenesis.features import distsim_simulate, distsim_extract, distsim_plot, distsim_clean, distsim_retry, distsim_dump, distsim_notify
 from neurogenesis.base import Logger

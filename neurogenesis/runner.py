@@ -12,11 +12,11 @@ def run_simulation(path_to_execute_binary, path_to_hosts_file, nr_ranks, sim, re
     mpi_info = MPI.Info.Create()
     #mpi_info.Set("hostfile", path_to_hosts_file)
     mpi_info.Set("add-hostfile", path_to_hosts_file)
-    comm = MPI.COMM_WORLD.Spawn(sys.executable,
+    os_python = "/usr/bin/python"
+    comm = MPI.COMM_WORLD.Spawn(command=os_python,
                                args=[path_to_execute_binary],
                                maxprocs=nr_ranks-1,
                                info=mpi_info).Merge()
-
     comm.Barrier()
     if retry_only:
         failed_sims = {}

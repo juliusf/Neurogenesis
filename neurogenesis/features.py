@@ -4,6 +4,8 @@ import sys
 import httplib, urllib
 import shutil
 import datetime
+import os
+import subprocess
 
 from neurogenesis import demux
 from neurogenesis import runner
@@ -19,17 +21,25 @@ def distsim_simulate(args):
     Logger.info("Creating simulation configs...")
     sim = Simulation()
     sim.last_executed = datetime.datetime.now()
-
+    inet_commit_shell_code = "cd %s && git describe" % (args['inetdir'])
+    inet_commit = subprocess.check_output(inet_commit_shell_code, shell=True).strip()
     if args['name'] is not None:
         sim.name = args['name']
+    sim.inet_commit = inet_commit
 
     sim.simulation_runs = write_sim_config(args)
     sim = run_simulation(args, sim)
     Logger.info("Saving simulation Metadata")
-    serialize_sim_data(args['metaFile'], sim)
+    metafile = args['metaFile']
+    serialize_sim_data(metafile, sim)
 
     notification_message = "simulation %s (%s) finished. \n duration: %s \n non-zero exits: %s \n ran on %s ranks" % (sim.name, args['inifile'], sim.total_duration, sim.total_non_zero_exit_codes, args['nrRanks'])
     send_notification(notification_message, args)
+    output_folder = "results/%s_%s/" % (sim.last_executed, sim.name)
+    if not os.path.exists(output_folder):
+            os.makedirs(output_folder)
+            shutil.copyfile(metafile, output_folder + metafile)
+
 
 def distsim_extract(args):
         Logger.info("Extracting Scalars")
