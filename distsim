@@ -9,7 +9,7 @@ import datetime
 import os
 
 from neurogenesis.features import distsim_simulate, distsim_extract, distsim_plot, distsim_clean, distsim_retry, distsim_dump, distsim_notify
-from neurogenesis.base import Logger
+from neurogenesis.util import Logger, PrintColors
 
 from time import sleep
 
@@ -33,8 +33,11 @@ def main():
     arg_parser.add_argument("--name", help="name that is used to identify the simulation run later")
     arg_parser.add_argument("--configName", help="name of the config in ini to execute")
     arg_parser.add_argument("--notifyMsg", help="Message content of the notification to be sent to the mobile device")
-
+    arg_parser.add_argument("--versionResults", help="specifies wether metafiles should be versioned separately")
     config = ConfigParser.ConfigParser()
+
+    Logger.printColor(PrintColors.OKGREEN, "This is distsim distributed omnet/inet simulation environment.")
+
     try:
         config.read("config.ini")
     except ConfigParser.NoSectionError:
@@ -59,7 +62,10 @@ def main():
                         sleep(15)
                 else:
                     break
-
+        sim = tasks[0].result
+        print("result dir: %s " % (sim.result_dir))
+        if(args["versionResults"]):
+                distsim_extract(args, sim)
 
     elif command == "extract":
         distsim_extract(args)
@@ -130,6 +136,11 @@ def write_default_parameters(args, config):
 
     if args.notifyMsg is None:
         args.notifyMsg = ""
+
+    if args.versionResults == "true":
+        args.versionResults = True
+    else:
+        args.versionResults = False
     return args
 
 if __name__ == '__main__':

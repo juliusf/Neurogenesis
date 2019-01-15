@@ -22,7 +22,11 @@ def distsim_simulate(args):
     sim = Simulation()
     sim.last_executed = datetime.datetime.now()
     inet_commit_shell_code = "cd %s && git describe" % (args['inetdir'])
-    inet_commit = subprocess.check_output(inet_commit_shell_code, shell=True).strip()
+    try:
+        inet_commit = subprocess.check_output(inet_commit_shell_code, shell=True).strip()
+    except subprocess.CalledProcessError:
+        inet_commit = "UNKNOWN"
+
     if args['name'] is not None:
         sim.name = args['name']
     sim.inet_commit = inet_commit
@@ -36,16 +40,24 @@ def distsim_simulate(args):
     notification_message = "simulation %s (%s) finished. \n duration: %s \n non-zero exits: %s \n ran on %s ranks" % (sim.name, args['inifile'], sim.total_duration, sim.total_non_zero_exit_codes, args['nrRanks'])
     send_notification(notification_message, args)
     output_folder = "results/%s_%s/" % (sim.last_executed, sim.name)
-    if not os.path.exists(output_folder):
-            os.makedirs(output_folder)
-            shutil.copyfile(metafile, output_folder + metafile)
+    if args['versionResults'] == True:
+       if not os.path.exists(output_folder):
+                os.makedirs(output_folder)
+                sim.result_dir = output_folder + metafile
+                serialize_sim_data(output_folder + metafile, sim)
+    else:
+        serialize_sim_data(metafile, sim)
+    return sim
 
-
-def distsim_extract(args):
+def distsim_extract(args, simulation = None):
         Logger.info("Extracting Scalars")
-        updated_simulations = extract(args)
+        updated_simulations = extract(args, simulation)
         Logger.info("done. Writing results back to metafile")
-        serialize_sim_data(args['metaFile'], updated_simulations)
+        Logger.warning(updated_simulations.result_dir)
+        if updated_simulations.result_dir != '':
+            serialize_sim_data(updated_simulations.result_dir, updated_simulations)
+        else:
+            serialize_sim_data(args['metaFile'], updated_simulations)
 
 def distsim_plot(args):
         plot_simfile(args)
@@ -67,7 +79,7 @@ def distsim_retry(args):
 def distsim_dump(args):
         Logger.info("dumping the first 50 run hashes...")
         simulation = deserialize_sim_data(args['metaFile'])
-        runs = simulation.simulation_runs.keys()[:50]
+        rns = simulation.simulation_runs.keys()[:50]
         [Logger.info(run) for run in runs]
 
 def distsim_notify(args):
@@ -77,8 +89,10 @@ def run_simulation(args, sim):
         Logger.info("Starting distributed Simulation with %i ranks" % args['nrRanks'])
         return runner.run_simulation(args['mpiWorker'], args['hostfile'], args['nrRanks'], sim)
 
-def extract(args):
-    simulation = deserialize_sim_data(args['metaFile'])
+def extract(args, simulation = None):
+    if simulation == None:
+        simulation = deserialize_sim_data(args['metaFile'])
+
     simulations = simulation.simulation_runs
     try:
         simulations = extractor.extract(args['extractScalarsFile'], simulations)

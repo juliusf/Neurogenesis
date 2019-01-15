@@ -1,5 +1,5 @@
 import matplotlib as mpl
-#mpl.use('pdf')
+mpl.use('pdf')
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np

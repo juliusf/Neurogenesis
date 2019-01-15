@@ -27,8 +27,11 @@ class Simulation():
             self.total_duration = -1
             self.total_non_zero_exit_codes = -1
             self.inet_commit = ""
+            self.notes = ""
+            self.result_dir = ""
 
 def serialize_sim_data(simName, simulations):
+    Logger.info("Writing simulation data to file: %s" % (simName))
     file = open(simName, "wb+")
     gc.disable()
     pickle.dump(simulations, file, protocol=pickle.HIGHEST_PROTOCOL)
@@ -37,6 +40,7 @@ def serialize_sim_data(simName, simulations):
 
 
 def deserialize_sim_data(path):
+    Logger.info("Reading simulation data from file: %s" % (path))
     file = open(path, "rb")
     gc.disable()
     sim_data = pickle.load(file)
