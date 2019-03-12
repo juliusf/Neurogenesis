@@ -43,7 +43,7 @@ def distsim_simulate(args):
     if args['versionResults'] == True:
        if not os.path.exists(output_folder):
                 os.makedirs(output_folder)
-                sim.result_dir = output_folder + metafile
+                sim.result_dir = output_folder
                 serialize_sim_data(output_folder + metafile, sim)
     else:
         serialize_sim_data(metafile, sim)
@@ -55,9 +55,9 @@ def distsim_extract(args, simulation = None):
         Logger.info("done. Writing results back to metafile")
         Logger.warning(updated_simulations.result_dir)
         if updated_simulations.result_dir != '':
-            serialize_sim_data(updated_simulations.result_dir, updated_simulations)
-        else:
-            serialize_sim_data(args['metaFile'], updated_simulations)
+            serialize_sim_data(updated_simulations.result_dir + args['metaFile'], updated_simulations)
+
+        serialize_sim_data(args['metaFile'], updated_simulations)
 
 def distsim_plot(args):
         plot_simfile(args)

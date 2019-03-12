@@ -7,6 +7,7 @@ import httplib, urllib
 import shutil
 import datetime
 import os
+import shutil
 
 from neurogenesis.features import distsim_simulate, distsim_extract, distsim_plot, distsim_clean, distsim_retry, distsim_dump, distsim_notify
 from neurogenesis.util import Logger, PrintColors
@@ -63,9 +64,12 @@ def main():
                 else:
                     break
         sim = tasks[0].result
-        print("result dir: %s " % (sim.result_dir))
         if(args["versionResults"]):
                 distsim_extract(args, sim)
+                try:
+                    shutil.copy(args['inifile'], sim.result_dir + args['inifile'])
+                except shutil.Error as e:
+                    Logger.warning(e)
 
     elif command == "extract":
         distsim_extract(args)
