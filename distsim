@@ -93,7 +93,6 @@ def write_default_parameters(args, config):
             args.__dict__[key] = config.get('Base', key)
         except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
             pass
-
     if args.mpiWorker is None:
         args.mpiWorker = "/mnt/distsim/simtools/mpiworker"
 
@@ -145,6 +144,17 @@ def write_default_parameters(args, config):
         args.versionResults = True
     else:
         args.versionResults = False
+
+
+    # Advanced plotting configuration
+    advanced_plot_parameters = ['x-axis', 'y-axis', ]
+    args.advanced_plot_parameters = {}
+    for parameter in advanced_plot_parameters:
+        try:
+            args.advanced_plot_parameters[parameter] = config.get('Plotting', parameter).split('\n')
+            print(args.advanced_plot_parameters)
+        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+            pass
     return args
 
 if __name__ == '__main__':

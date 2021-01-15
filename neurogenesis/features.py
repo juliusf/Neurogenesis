@@ -108,7 +108,10 @@ def extract(args, simulation = None):
 
 def plot_simfile(args):
     simulations = deserialize_sim_data(args['metaFile'])
-    plot_simulations(simulations, args['plotScript'])
+    if 'advanced_plot_parameters' in args:
+        plot_simulations(simulations, args['plotScript'], plot_parameters=args['advanced_plot_parameters'])
+    else:
+        plot_simulations(simulations, args['plotScript'])
 
 def write_sim_config(args):
     if args['inifile'] is None:

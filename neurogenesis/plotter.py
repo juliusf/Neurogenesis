@@ -203,9 +203,12 @@ def generate_title(simulation, plot_description, current_config):
             title += " | %s" % (value)
     return title
 
-def plot_simulations(simulations, plot_script_path, out_dir = '.'):
+def plot_simulations(simulations, plot_script_path, plot_parameters=None, out_dir = '.'):
     mod = imp.load_source("plot", plot_script_path)
-    mod.plot(simulations)
+    if plot_parameters is None:
+        mod.plot(simulations)
+    else:
+        mod.plot(simulations, plot_parameters)
 
 def find_vector_XY(result_vectors, module, name, min_values):
     vec = find_vectors(result_vectors, module, name, min_values)
