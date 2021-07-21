@@ -15,7 +15,7 @@ class SimulationConfig():
         self.x_limits = (0,100,10)
         self.y_limits = (0, 100, 10)
 
-        self.x_axis_parameter = ""
+        self.x_axis_parameter = "" 
         self.y_axis_parameter = ""
 
 
@@ -37,18 +37,18 @@ def load_plot_config(path):
 
         tokens = line.strip().split(" ")
 
-def get_datapoints_in_buckets(simulations, x_axis_attr, y_axis_attr, filter=None):
+def get_datapoints_in_buckets(simulations, x_axis_attr, y_axis_attr, filter=None, y_scale=1):
     datapoints = []
     data_buckets = {}
     for sim in simulations.values():
         if type(filter) is tuple:
             if not filter or sim.results[filter[0]] == filter[1]:
-                datapoints.append((sim.results[x_axis_attr], sim.results[y_axis_attr]))
+                    datapoints.append((sim.results[x_axis_attr], sim.results[y_axis_attr] / y_scale))
         else:
             result = check_filter(sim, filter)
             if result:
                 try:
-                    datapoints.append((sim.results[x_axis_attr], sim.results[y_axis_attr]))
+                    datapoints.append((sim.results[x_axis_attr], sim.results[y_axis_attr] / y_scale))
                 except KeyError, e:
                     Logger.error("Could not find desired axis %s in data set!" % (e))
                     Logger.error("Available are: %s" % (sim.results.keys()))
@@ -84,7 +84,6 @@ def get_time_series_in_buckets(simulations, y_axis_attrs, filter=None):
                     res = {}
                     for attr in y_axis_attrs:
                         try:
-                            print(y_axis_attrs)
                             res[attr] = sim.result_vectors[attr]
                         except KeyError, e:
                             Logger.error("Could not find desired axis %s in data set!" % (e))
@@ -139,8 +138,11 @@ def generate_plot(simulation, plot_description, pdf):
 
     for idx, filter in enumerate(plot_configs):
         current_config = dict(filter)
+        if plot_description.has_key('y-axis-scale'):
+            datapoints = get_datapoints_in_buckets(simulation.simulation_runs, plot_description['x-axis'], plot_description['y-axis'], filter, plot_description['y-axis-scale'])
+        else:
+            datapoints = get_datapoints_in_buckets(simulation.simulation_runs, plot_description['x-axis'], plot_description['y-axis'], filter)
 
-        datapoints = get_datapoints_in_buckets(simulation.simulation_runs, plot_description['x-axis'], plot_description['y-axis'], filter)
         if len(datapoints) == 0:
             Logger.error("Error in plot config! Simdata does not contain filter: %s" % (filter))
             exit(-1)
@@ -170,8 +172,10 @@ def generate_plot(simulation, plot_description, pdf):
 
         line_part = "%s " %  (current_config[line_parameter]) if line_parameter is not '' else ''
         label_part = "%s " %  (current_config[col_parameter]) if col_parameter is not '' else ''
-        label = label_part + "Mbps" #+ current_config['**.rtcWebClient.webRTCCB.enabled']
-
+        try:
+            label = label_part + "Mbps | active= " + current_config['**.rtcWebClient1.webRTCCB.enabled']
+        except KeyError:
+            label = label_part + "Mbps | active= " + current_config['**.rtcWebClient.webRTCCB.enabled']
         if use_dotted :
             if line_mode:
                 ax.errorbar(x_s, y_s, yerr=y_err, label=label , marker="o", lw=3)
@@ -192,6 +196,7 @@ def generate_legend(ax, n, plot_description):
 
 def generate_title(simulation, plot_description, current_config):
     title = plot_description['title']
+    return title
     if simulation.name != "":
         title += " " + simulation.name + " "
     for entry in plot_description['group-by']:
